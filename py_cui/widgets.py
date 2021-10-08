@@ -457,21 +457,16 @@ class ScrollMenu(Widget, py_cui.ui.MenuImplementation):
         super()._draw()
         self._renderer.set_color_mode(self._color)
         self._renderer.draw_border(self)
-        counter = self._pady + 1
-        line_counter = 0
-        for item in self._view_items:
+        posy = self._pady + 1
+        self._bottom_view = self._top_view
+        for itemi in range(self._top_view, len(self._view_items)):
+            item = self._view_items[itemi]
             line = str(item)
-            if line_counter < self._top_view:
-                line_counter = line_counter + 1
-            else:
-                if counter >= self._height - self._pady - 1:
-                    break
-                if line_counter == self._selected_item:
-                    self._renderer.draw_text(self, line, self._start_y + counter, selected=True)
-                else:
-                    self._renderer.draw_text(self, line, self._start_y + counter)
-                counter = counter + 1
-                line_counter = line_counter + 1
+            posy += self._renderer.draw_text(self, line, self._start_y + posy, selected=itemi == self._selected_item)
+            if posy <= self._height - self._pady - 1:
+              self._bottom_view = itemi
+            if posy >= self._height - self._pady - 1:
+                break
         self._renderer.unset_color_mode(self._color)
         self._renderer.reset_cursor(self)
 
@@ -784,7 +779,7 @@ class ScrollTextBlock(Widget, py_cui.ui.TextBlockImplementation):
                     self._cursor_text_pos_y = line_clicked_index
                     self._cursor_y = y
                     line = self._text_lines[line_clicked_index]
-                
+
                 if x <= len(line) + self._cursor_max_left:
                     old_text_pos = self._cursor_text_pos_x
                     old_cursor_x = self._cursor_x

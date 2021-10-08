@@ -678,6 +678,8 @@ class MenuImplementation(UIImplementation):
     ----------
     _top_view : int
         the uppermost menu element in view
+    _bottom_view : int
+        the lowermost fully-displayed menu element in view
     _selected_item : int
         the currently highlighted menu item
     _view_items : list of str
@@ -690,6 +692,7 @@ class MenuImplementation(UIImplementation):
 
         super().__init__(logger)
         self._top_view         = 0
+        self._bottom_view         = 0
         self._selected_item    = 0
         self._page_scroll_len  = 5
         self._view_items       = []
@@ -702,6 +705,7 @@ class MenuImplementation(UIImplementation):
         self._view_items = []
         self._selected_item = 0
         self._top_view = 0
+        self._bottom_view = 0
 
         self._logger.info('Clearing menu')
 
@@ -736,7 +740,7 @@ class MenuImplementation(UIImplementation):
         """
 
         if self._top_view > 0 and self._selected_item == self._top_view:
-            self._top_view = self._top_view - 1
+            self._top_view -= 1
         if self._selected_item > 0:
             self._selected_item = self._selected_item - 1
 
@@ -756,8 +760,8 @@ class MenuImplementation(UIImplementation):
 
         if self._selected_item < len(self._view_items) - 1:
             self._selected_item = self._selected_item + 1
-        if self._selected_item > self._top_view + viewport_height:
-            self._top_view = self._top_view + 1
+        if self._selected_item > self._bottom_view:
+            self._top_view += 1
 
         self._logger.info('Scrolling down to item {}'.format(self._selected_item))
 
@@ -873,6 +877,10 @@ class MenuImplementation(UIImplementation):
         """
 
         return self._view_items
+
+
+    def get_item_size(self):
+        return len(self._view_items)
 
 
     def get(self):

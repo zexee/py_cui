@@ -45,6 +45,7 @@ class Renderer:
         }
 
 
+
     def _set_border_renderer_chars(self, border_char_set):
         """Function that sets the border characters for ui_elements
 
@@ -181,10 +182,10 @@ class Renderer:
         self.set_color_mode(ui_element.get_border_color())
 
         self._draw_border_top(ui_element, border_y_start, with_title)
-        
+
         for i in range(border_y_start + 1, border_y_stop):
             self._draw_blank_row(ui_element, i)
-        
+
         self._draw_border_bottom(ui_element, border_y_stop)
 
         self.unset_color_mode(ui_element.get_border_color())
@@ -264,7 +265,7 @@ class Renderer:
         render_text = '{}{}{}'.format(  self._border_characters['VERTICAL'],
                                         ' ' * (width - 2 - 2 * padx),
                                         self._border_characters['VERTICAL'])
-        
+
         self._stdscr.addstr(y, start_x + padx, render_text)
 
 
@@ -300,8 +301,7 @@ class Renderer:
 
         if len(line) - start_pos < render_text_length:
             if centered:
-                render_text = '{}'.format(  line[start_pos:].center(render_text_length,
-                                            ' '))
+                render_text = '{}'.format(line[start_pos:].center(render_text_length, ' '))
             else:
                 render_text = '{}{}'.format(line[start_pos:],
                                             ' ' * (render_text_length - len(line[start_pos:])))
@@ -330,11 +330,11 @@ class Renderer:
             list of text - color code combinations to write
         """
 
-        if selected: 
+        if selected:
             fragments = [[render_text, ui_element.get_selected_color()]]
         else:
             fragments = [[render_text, ui_element.get_color()]]
-        
+
         for color_rule in self._color_rules:
             fragments, match = color_rule.generate_fragments(ui_element, line, render_text, selected)
             if match:
@@ -343,7 +343,15 @@ class Renderer:
         return fragments
 
 
-    def draw_text(self, ui_element, line, y, centered = False, bordered = True, selected = False, start_pos = 0):
+    def draw_text(self, ui_element, multi_lines, y, centered=False, bordered=True, selected=False, start_pos=0):
+      lines = multi_lines.splitlines()
+      count = 0
+      for line in lines:
+        self._draw_text(ui_element, line, y + count, centered, bordered, selected, start_pos)
+        count += 1
+      return count
+
+    def _draw_text(self, ui_element, line, y, centered = False, bordered = True, selected = False, start_pos = 0):
         """Function that draws ui_element text.
 
         Parameters
@@ -364,9 +372,11 @@ class Renderer:
             position to start rendering the text from.
         """
 
-        padx, _       = ui_element.get_padding()
-        start_x, _    = ui_element.get_start_position()
-        stop_x, _     = ui_element.get_stop_position()
+        padx, pady = ui_element.get_padding()
+        start_x, start_y = ui_element.get_start_position()
+        stop_x, stop_y = ui_element.get_stop_position()
+        if y >= stop_y - pady - 1:
+            return
 
         render_text = self._get_render_text(ui_element, line, centered, bordered, selected, start_pos)
         current_start_x = start_x + padx
@@ -397,7 +407,7 @@ class Renderer:
 
             if selected and text_elem[1] != py_cui.BLACK_ON_WHITE:
                 self._unset_bold()
-            
+
             self.unset_color_mode(text_elem[1])
 
         if ui_element.is_selected():
