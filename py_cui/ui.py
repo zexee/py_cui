@@ -1127,6 +1127,8 @@ class TextBlockImplementation(UIImplementation):
         self._cursor_y = self._cursor_max_up
         self._cursor_text_pos_x = 0
         self._cursor_text_pos_y = 0
+        self._viewport_y_start   = 0
+        self._viewport_x_start   = 0
         self._text_lines = []
         self._text_lines.append('')
         self._logger.info('Cleared textblock')
@@ -1155,15 +1157,10 @@ class TextBlockImplementation(UIImplementation):
             text to write into text block
         """
 
+        self.clear()
         self._text_lines = text.splitlines()
         if len(self._text_lines) == 0:
             self._text_lines.append('')
-
-        self._cursor_text_pos_y    = 0
-        self._cursor_y             = self._cursor_max_up
-        self._viewport_y_start     = 0
-        self._cursor_x             = self._cursor_max_left
-        self._cursor_text_pos_x    = 0
 
 
     def set_text_line(self, text):

@@ -273,11 +273,18 @@ class Widget(py_cui.ui.UIElement):
         ----------
         key_pressed : int
             key code of key pressed
+
+        Returns
+        -------
+        is_inside : bool
+            Whether the key is handled
         """
 
         if key_pressed in self._key_commands.keys():
             command = self._key_commands[key_pressed]
             command()
+            return True
+        return False
 
 
     def _draw(self):
@@ -800,7 +807,8 @@ class ScrollTextBlock(Widget, py_cui.ui.TextBlockImplementation):
             key code of key pressed
         """
 
-        super()._handle_key_press(key_pressed)
+        if super()._handle_key_press(key_pressed):
+            return
 
         if key_pressed == py_cui.keys.KEY_LEFT_ARROW:
             self._move_left()
@@ -839,13 +847,13 @@ class ScrollTextBlock(Widget, py_cui.ui.TextBlockImplementation):
 
         self._renderer.set_color_mode(self._color)
         self._renderer.draw_border(self)
-        counter = self._cursor_max_up
-        for line_counter in range(self._viewport_y_start, self._viewport_y_start + self._viewport_height):
-            if line_counter == len(self._text_lines):
+        posy = self._cursor_max_up
+        for line_counter in range(self._viewport_y_start, self._viewport_y_start + self._viewport_height + 1):
+            if line_counter >= len(self._text_lines):
                 break
             render_text = self._text_lines[line_counter]
-            self._renderer.draw_text(self, render_text, counter, start_pos=self._viewport_x_start, selected=self._selected)
-            counter = counter + 1
+            self._renderer.draw_text(self, render_text, posy, start_pos=self._viewport_x_start, selected=self._selected)
+            posy += 1
         if self._selected:
             self._renderer.draw_cursor(self._cursor_y, self._cursor_x)
         else:
