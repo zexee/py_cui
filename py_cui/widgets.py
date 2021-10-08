@@ -469,14 +469,15 @@ class ScrollMenu(Widget, py_cui.ui.MenuImplementation):
         self._renderer.draw_border(self)
         posy = self._pady + 1
         self._bottom_view = self._top_view
+        self._logger.info("menu {} {}".format(self._height, self._pady))
         for itemi in range(self._top_view, len(self._view_items)):
-            item = self._view_items[itemi]
-            line = str(item)
-            posy += self._renderer.draw_text(self, line, self._start_y + posy, selected=itemi == self._selected_item)
+            posy += self._renderer.draw_text(self, str(self._view_items[itemi]),
+                self._start_y + posy, selected=itemi == self._selected_item)
             if posy <= self._height - self._pady - 1:
               self._bottom_view = itemi
             if posy >= self._height - self._pady - 1:
                 break
+        self._renderer.draw_scrollbar(self, self._top_view + 1, self._bottom_view + 1, len(self._view_items))
         self._renderer.unset_color_mode(self._color)
         self._renderer.reset_cursor(self)
 
@@ -852,12 +853,16 @@ class ScrollTextBlock(Widget, py_cui.ui.TextBlockImplementation):
         self._renderer.set_color_mode(self._color)
         self._renderer.draw_border(self)
         posy = self._cursor_max_up
-        for line_counter in range(self._viewport_y_start, self._viewport_y_start + self._viewport_height + 1):
-            if line_counter >= len(self._text_lines):
+        lastline = self._viewport_y_start
+        for linei in range(self._viewport_y_start, self._viewport_y_start + self._viewport_height + 1):
+            if linei >= len(self._text_lines):
                 break
-            render_text = self._text_lines[line_counter]
-            self._renderer.draw_text(self, render_text, posy, start_pos=self._viewport_x_start, selected=self._selected)
+            render_text = self._text_lines[linei]
+            self._renderer.draw_text(self, render_text, posy,
+                start_pos=self._viewport_x_start, selected=self._selected)
+            lastline = linei
             posy += 1
+        self._renderer.draw_scrollbar(self, self._viewport_y_start + 1, lastline + 1, len(self._text_lines))
         if self._selected:
             self._renderer.draw_cursor(self._cursor_y, self._cursor_x)
         else:

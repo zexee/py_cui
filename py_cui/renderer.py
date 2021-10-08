@@ -41,7 +41,8 @@ class Renderer:
             'DOWN_LEFT'     : '+',
             'DOWN_RIGHT'    : '+',
             'HORIZONTAL'    : '-',
-            'VERTICAL'      : '|'
+            'VERTICAL'      : '|',
+            'SCROLLBAR'     : '*',
         }
 
 
@@ -150,6 +151,25 @@ class Renderer:
         """
 
         self._stdscr.move(cursor_y, cursor_x)
+
+
+    def draw_scrollbar(self, ui_element, begin, end, limit):
+        padx, _       = ui_element.get_padding()
+        _, start_y    = ui_element.get_start_position()
+        stop_x, _     = ui_element.get_stop_position()
+        height        = ui_element.get_viewport_height()
+        self._logger.info('scroll {} {} {}'.format(begin, end, limit))
+        if begin == 1 and end >= limit:
+            return
+        begin_ratio = float(begin - 1) / limit
+        end_ratio = float(end) / limit
+        for i in range(height):
+            ratio0 = float(i) / height
+            ratio1 = float(i + 1) / height
+            if (ratio0 <= begin_ratio <= ratio1 or
+                ratio0 <= end_ratio <= ratio1 or
+                begin_ratio <= ratio1 <= end_ratio):
+                self._stdscr.addstr(start_y + i + 1, stop_x - padx - 1, self._border_characters['SCROLLBAR'])
 
 
     def draw_border(self, ui_element, fill=True, with_title=True):
@@ -361,7 +381,7 @@ class Renderer:
         count += 1
       return count
 
-    def _draw_text(self, ui_element, line, y, centered = False, bordered = True, selected = False, start_pos = 0):
+    def _draw_text(self, ui_element, line, y, centered, bordered, selected, start_pos):
         """Function that draws ui_element text.
 
         Parameters
