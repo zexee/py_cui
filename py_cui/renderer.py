@@ -372,10 +372,10 @@ class Renderer:
             position to start rendering the text from.
         """
 
-        padx, pady = ui_element.get_padding()
+        padx, _ = ui_element.get_padding()
         start_x, start_y = ui_element.get_start_position()
-        stop_x, stop_y = ui_element.get_stop_position()
-        if y >= stop_y - pady - 1:
+        stop_x, _ = ui_element.get_stop_position()
+        if y > start_y + ui_element.get_viewport_height():
             return
 
         render_text = self._get_render_text(ui_element, line, centered, bordered, selected, start_pos)

@@ -435,6 +435,7 @@ class ScrollMenu(Widget, py_cui.ui.MenuImplementation):
         """
 
         super()._handle_key_press(key_pressed)
+
         viewport_height = self.get_viewport_height()
         if key_pressed == py_cui.keys.KEY_UP_ARROW:
             self._scroll_up()

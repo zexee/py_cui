@@ -121,7 +121,7 @@ class UIElement:
             Height of element viewport in terminal characters
         """
 
-        return self._height - (2 * self._pady) - 3
+        return self._height - (2 * self._pady) - 2
 
 
     def get_id(self):
