@@ -299,7 +299,7 @@ class PyCUI:
         """
 
         # Use current logging object and simulated terminal for sub-widget sets
-        return py_cui.widget_set.WidgetSet(num_rows, num_cols, self._logger, 
+        return py_cui.widget_set.WidgetSet(num_rows, num_cols, self._logger,
                                             simulated_terminal=self._simulated_terminal)
 
 
@@ -769,7 +769,7 @@ class PyCUI:
         self._logger.info('Adding widget {} w/ ID {} of type {}'.format(title, id, str(type(new_button))))
         return new_button
 
-    
+
     def add_slider(self, title, row, column, row_span=1,
                    column_span=1, padx=1, pady=0,
                    min_val=0, max_val=100, step=1, init_val=0) -> py_cui.controls.slider.SliderWidget:
@@ -1377,7 +1377,7 @@ class PyCUI:
         if self._selected_widget is not None:
             self.get_widgets()[self._selected_widget]._draw()
 
-        self._logger.info('Drew widgets')
+        # self._logger.info('Drew widgets')
 
 
     def _draw_status_bars(self, stdscr, height, width):
@@ -1433,7 +1433,6 @@ class PyCUI:
         key_pressed : py_cui.keys.KEY_*
             The key being pressed
         """
-
         # Selected widget represents which widget is being hovered over, though not necessarily in focus mode
         if self._selected_widget is None:
             return
@@ -1455,8 +1454,11 @@ class PyCUI:
 
         # Otherwise, barring a popup, we are in overview mode, meaning that arrow py_cui.keys move between widgets, and Enter key starts focus mode
         elif self._popup is None:
-            if key_pressed == py_cui.keys.KEY_ENTER and self._selected_widget is not None and selected_widget.is_selectable():
-                self.move_focus(selected_widget)
+            if key_pressed == py_cui.keys.KEY_ENTER and self._selected_widget is not None:
+                if selected_widget.is_selectable():
+                    self.move_focus(selected_widget)
+                else:
+                    selected_widget._handle_key_press(key_pressed)
 
             for key in self._keybindings.keys():
                 if key_pressed == key:
@@ -1500,7 +1502,7 @@ class PyCUI:
         # Initialization functions. Generates colors and renderer
         self._initialize_colors()
         self._initialize_widget_renderer()
-        
+
         # If user specified a refresh timeout, apply it here
         if self._refresh_timeout > 0:
             self._stdscr.timeout(self._refresh_timeout)
@@ -1600,8 +1602,10 @@ class PyCUI:
                 elif self._stopped:
                     key_pressed = self._exit_key
                 else:
-                    self._logger.info('Waiting for next keypress')
+                    # self._logger.info('Waiting for next keypress')
                     key_pressed = stdscr.getch()
+                    if key_pressed > 0:
+                        self._logger.info('keypress {}'.format(key_pressed))
 
             except KeyboardInterrupt:
                 self._logger.info('Detect Keyboard Interrupt, Exiting...')
