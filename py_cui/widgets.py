@@ -428,6 +428,7 @@ class ScrollMenu(Widget, py_cui.ui.MenuImplementation):
         if viewport_top <= y and viewport_top + len(self._view_items) - self._top_view >= y:
             elem_clicked = y - viewport_top + self._top_view
             self.set_selected_item_index(elem_clicked)
+        self._set_footer()
 
 
     def _handle_key_press(self, key_pressed):
@@ -456,6 +457,7 @@ class ScrollMenu(Widget, py_cui.ui.MenuImplementation):
         elif key_pressed == py_cui.keys.KEY_END:
             # TODO: fix
             self._jump_to_bottom(self.get_viewport_height())
+        self._set_footer()
 
 
     def _draw(self):
@@ -796,6 +798,7 @@ class ScrollTextBlock(Widget, py_cui.ui.TextBlockImplementation):
                 else:
                     self._cursor_x = self._cursor_max_left + len(line)
                     self._cursor_text_pos_x = len(line)
+        self._set_footer()
 
 
     def _handle_key_press(self, key_pressed):
@@ -837,6 +840,7 @@ class ScrollTextBlock(Widget, py_cui.ui.TextBlockImplementation):
             self._handle_end()
         elif key_pressed > 31 and key_pressed < 128:
             self._insert_char(key_pressed)
+        self._set_footer()
 
 
     def _draw(self):

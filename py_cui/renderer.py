@@ -240,10 +240,20 @@ class Renderer:
         padx, _       = ui_element.get_padding()
         start_x, _    = ui_element.get_start_position()
         _, width      = ui_element.get_absolute_dimensions()
+        footer        = ui_element.get_footer()
 
-        render_text = '{}{}{}'.format(  self._border_characters['DOWN_LEFT'],
-                                        self._border_characters['HORIZONTAL'] * (width - 2 - 2 * padx),
-                                        self._border_characters['DOWN_RIGHT'])
+        if not footer or len(footer) + 4 >= width - padx * 2:
+            render_text = '{}{}{}'.format(
+                self._border_characters['DOWN_LEFT'],
+                self._border_characters['HORIZONTAL'] * (width - 2 - 2 * padx),
+                self._border_characters['DOWN_RIGHT'])
+        else:
+            render_text = '{}{}[{}]{}{}'.format(
+                self._border_characters['DOWN_LEFT'],
+                self._border_characters['HORIZONTAL'] * (width - 6 - padx * 2 - len(footer)),
+                footer,
+                self._border_characters['HORIZONTAL'] * 2,
+                self._border_characters['DOWN_RIGHT'])
         self._stdscr.addstr(y, start_x + padx, render_text)
 
 

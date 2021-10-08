@@ -57,6 +57,7 @@ class UIElement:
 
         self._id                        = id
         self._title                     = title
+        self._footer                    = ''
         self._padx                      = 1
         self._pady                      = 0
         self._start_x,  self._stop_y    = 0, 0
@@ -146,6 +147,18 @@ class UIElement:
         """
 
         return self._title
+
+
+    def get_footer(self):
+        """Getter for ui element footer
+
+        Returns
+        -------
+        footer : str
+            UI element title
+        """
+
+        return self._footer
 
 
     def get_padding(self):
@@ -269,6 +282,18 @@ class UIElement:
         """
 
         self._title = title
+
+
+    def set_footer(self, footer):
+        """Function that sets the widget footer.
+
+        Parameters
+        ----------
+        footer : str
+            New widget footer
+        """
+
+        self._footer = footer
 
 
     def set_color(self, color):
@@ -735,6 +760,10 @@ class MenuImplementation(UIImplementation):
         self._selected_item = selected_item_index
 
 
+    def _set_footer(self):
+        self.set_footer('{}/{}'.format(self._selected_item + 1, self.get_item_size()))
+
+
     def _scroll_up(self):
         """Function that scrolls the view up in the scroll menu
         """
@@ -809,6 +838,7 @@ class MenuImplementation(UIImplementation):
 
         self._logger.info('Adding item {} to menu'.format(str(item)))
         self._view_items.append(item)
+        self._set_footer()
 
 
     def add_item_list(self, item_list):
@@ -835,6 +865,7 @@ class MenuImplementation(UIImplementation):
         del self._view_items[self._selected_item]
         if self._selected_item >= len(self._view_items) and self._selected_item > 0:
             self._selected_item = self._selected_item - 1
+        self._set_footer()
 
 
     def remove_item(self, item):
@@ -853,6 +884,7 @@ class MenuImplementation(UIImplementation):
         del self._view_items[i_index]
         if self._selected_item >= i_index:
             self._selected_item = self._selected_item - 1
+        self._set_footer()
 
 
     def get_item_list(self):
@@ -1131,6 +1163,7 @@ class TextBlockImplementation(UIImplementation):
         self._viewport_x_start   = 0
         self._text_lines = []
         self._text_lines.append('')
+        self._set_footer()
         self._logger.info('Cleared textblock')
 
 
@@ -1176,6 +1209,12 @@ class TextBlockImplementation(UIImplementation):
 
         self._text_lines[self._cursor_text_pos_y] = text
 
+
+    def _set_footer(self):
+        x, y = self.get_cursor_text_pos()
+        x += 1
+        y += 1
+        self.set_footer('{}:{}'.format(x, y))
 
     def _move_left(self):
         """Function that moves the cursor/text position one location to the left
