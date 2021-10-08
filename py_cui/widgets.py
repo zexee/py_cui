@@ -807,9 +807,12 @@ class ScrollTextBlock(Widget, py_cui.ui.TextBlockImplementation):
             self._move_right()
         elif key_pressed == py_cui.keys.KEY_UP_ARROW:
             self._move_up()
-        # TODO: Fix this janky operation here
-        elif key_pressed == py_cui.keys.KEY_DOWN_ARROW and self._cursor_text_pos_y < len(self._text_lines) - 1:
+        elif key_pressed == py_cui.keys.KEY_DOWN_ARROW:
             self._move_down()
+        elif key_pressed == py_cui.keys.KEY_PAGE_UP:
+            self._page_up()
+        elif key_pressed == py_cui.keys.KEY_PAGE_DOWN:
+            self._page_down()
         elif key_pressed == py_cui.keys.KEY_BACKSPACE:
             self._handle_backspace()
         elif key_pressed == py_cui.keys.KEY_DELETE:

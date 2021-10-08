@@ -1259,6 +1259,15 @@ class TextBlockImplementation(UIImplementation):
         self._logger.info('Moved cursor down to line {}'.format(self._cursor_text_pos_y))
 
 
+    def _page_up(self):
+        for _ in range(self._viewport_height):
+            self._move_up()
+
+
+    def _page_down(self):
+        for _ in range(self._viewport_height):
+            self._move_down()
+
 
     def _handle_newline(self):
         """Function that handles recieving newline characters in the text
