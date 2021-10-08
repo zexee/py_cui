@@ -739,34 +739,27 @@ class MenuImplementation(UIImplementation):
         """Function that scrolls the view up in the scroll menu
         """
 
-        if self._top_view > 0 and self._selected_item == self._top_view:
-            self._top_view -= 1
         if self._selected_item > 0:
-            self._selected_item = self._selected_item - 1
+            if self._selected_item == self._top_view:
+                self._top_view -= 1
+            self._selected_item -= 1
 
         self._logger.info('Scrolling up to item {}'.format(self._selected_item))
 
 
-    def _scroll_down(self, viewport_height):
+    def _scroll_down(self):
         """Function that scrolls the view down in the scroll menu
-
-        TODO: Viewport height should be calculated internally, and not rely on a parameter.
-
-        Parameters
-        ----------
-        viewport_height : int
-            The number of visible viewport items
         """
 
         if self._selected_item < len(self._view_items) - 1:
-            self._selected_item = self._selected_item + 1
-        if self._selected_item > self._bottom_view:
-            self._top_view += 1
+            self._selected_item += 1
+            if self._selected_item > self._bottom_view:
+                self._top_view += 1
 
         self._logger.info('Scrolling down to item {}'.format(self._selected_item))
 
 
-    def _jump_up(self):
+    def _page_up(self):
         """Function for jumping up menu several spots at a time
         """
 
@@ -774,17 +767,12 @@ class MenuImplementation(UIImplementation):
             self._scroll_up()
 
 
-    def _jump_down(self, viewport_height):
+    def _page_down(self):
         """Function for jumping down the menu several spots at a time
-
-        Parameters
-        ----------
-        viewport_height : int
-            The number of visible viewport items
         """
 
         for _ in range(self._page_scroll_len):
-            self._scroll_down(viewport_height)
+            self._scroll_down()
 
 
     def _jump_to_top(self):
