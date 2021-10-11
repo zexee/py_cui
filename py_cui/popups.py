@@ -10,6 +10,7 @@ import curses
 import py_cui
 import py_cui.ui
 import py_cui.errors
+from .widgets import TextBoxImplementation, MenuImplementation
 
 
 class Popup(py_cui.ui.UIElement):
@@ -48,7 +49,7 @@ class Popup(py_cui.ui.UIElement):
         self._selected_color        = color
         self.update_height_width()
 
-    
+
     def _increment_counter(self):
         """Function that increments an internal counter
         """
@@ -70,7 +71,7 @@ class Popup(py_cui.ui.UIElement):
 
     def get_absolute_start_pos(self):
         """Override of base class, computes position based on root dimensions
-        
+
         Returns
         -------
         start_x, start_y : int
@@ -83,7 +84,7 @@ class Popup(py_cui.ui.UIElement):
 
     def get_absolute_stop_pos(self):
         """Override of base class, computes position based on root dimensions
-        
+
         Returns
         -------
         stop_x, stop_y : int
@@ -137,10 +138,10 @@ class MessagePopup(Popup):
         """
 
         super().__init__(root, title, text, color, renderer, logger)
-        self._close_keys = [ py_cui.keys.KEY_ENTER, 
-                            py_cui.keys.KEY_ESCAPE, 
-                            py_cui.keys.KEY_SPACE, 
-                            py_cui.keys.KEY_BACKSPACE, 
+        self._close_keys = [ py_cui.keys.KEY_ENTER,
+                            py_cui.keys.KEY_ESCAPE,
+                            py_cui.keys.KEY_SPACE,
+                            py_cui.keys.KEY_BACKSPACE,
                             py_cui.keys.KEY_DELETE]
 
 
@@ -201,7 +202,7 @@ class YesNoPopup(Popup):
         super()._draw()
 
 
-class TextBoxPopup(Popup, py_cui.ui.TextBoxImplementation):
+class TextBoxPopup(Popup, TextBoxImplementation):
     """Class representing a textbox popup
 
     Attributes
@@ -215,7 +216,7 @@ class TextBoxPopup(Popup, py_cui.ui.TextBoxImplementation):
         """
 
         Popup.__init__(self, root, title, '', color, renderer, logger)
-        py_cui.ui.TextBoxImplementation.__init__(self, '', password, logger)
+        TextBoxImplementation.__init__(self, '', password, logger)
         self._command           = command
         self.update_height_width()
 
@@ -301,7 +302,7 @@ class TextBoxPopup(Popup, py_cui.ui.TextBoxImplementation):
         self._renderer.unset_color_mode(self._color)
 
 
-class MenuPopup(Popup, py_cui.ui.MenuImplementation):
+class MenuPopup(Popup, MenuImplementation):
     """A scroll menu popup.
 
     Allows for popup with several menu items to select from
@@ -319,7 +320,7 @@ class MenuPopup(Popup, py_cui.ui.MenuImplementation):
         """
 
         Popup.__init__(self, root, title, '', color, renderer, logger)
-        py_cui.ui.MenuImplementation.__init__(self, logger)
+        MenuImplementation.__init__(self, logger)
         self.add_item_list(items)
         self._command              = command
         self._run_command_if_none  = run_command_if_none
@@ -432,7 +433,7 @@ class LoadingIconPopup(Popup):
         self._icon_counter = self._icon_counter + 1
         if self._icon_counter == len(self._loading_icons):
             self._icon_counter = 0
-        
+
         # Use Superclass draw after new text is computed
         super()._draw()
 
@@ -503,11 +504,11 @@ class LoadingBarPopup(Popup):
         if self._icon_counter == len(self._loading_icons):
             self._icon_counter = 0
 
-        self.set_text('{}{} ({}/{}) {}'.format( '#' * completed_blocks, 
-                                                '-' * non_completed_blocks, 
-                                                self._completed_items, 
-                                                self._num_items, 
+        self.set_text('{}{} ({}/{}) {}'.format( '#' * completed_blocks,
+                                                '-' * non_completed_blocks,
+                                                self._completed_items,
+                                                self._num_items,
                                                 self._loading_icons[self._icon_counter]))
-        
+
         # Use Superclass draw after new text is computed
         super()._draw()

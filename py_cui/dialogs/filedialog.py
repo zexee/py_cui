@@ -5,6 +5,7 @@ import py_cui.ui
 import py_cui.widgets
 import py_cui.popups
 import py_cui.colors
+from py_cui.widgets import TextBoxImplementation, MenuImplementation
 import os
 
 # Imports used to detect hidden files
@@ -64,7 +65,7 @@ class FileDirElem:
         # for compatibility reasons.
         if not ascii_icons:
             self._folder_icon = '\U0001f4c1'
-            # Folder icon is two characters, so 
+            # Folder icon is two characters, so
             self._file_icon = '\U0001f5ce' + ' '
         else:
             self._folder_icon = '<DIR>'
@@ -99,7 +100,7 @@ class FileDirElem:
 
 
 
-class FileSelectImplementation(py_cui.ui.MenuImplementation):
+class FileSelectImplementation(MenuImplementation):
     """Extension of menu implementation that allows for listing files and dirs in a location
 
     Attributes
@@ -120,7 +121,7 @@ class FileSelectImplementation(py_cui.ui.MenuImplementation):
         """
 
         super().__init__(logger)
-        
+
         self._current_dir = os.path.abspath(initial_loc)
         self._ascii_icons = ascii_icons
         self._dialog_type = dialog_type
@@ -302,7 +303,7 @@ class FileSelectElement(py_cui.ui.UIElement, FileSelectImplementation):
         self._renderer.reset_cursor(self)
 
 
-class FileNameInput(py_cui.ui.UIElement, py_cui.ui.TextBoxImplementation):
+class FileNameInput(py_cui.ui.UIElement, TextBoxImplementation):
     """UI Element class representing name input field for filedialog
 
     Attributes
@@ -409,7 +410,7 @@ class FileNameInput(py_cui.ui.UIElement, py_cui.ui.TextBoxImplementation):
                     fp = open(new_elem, 'w')
                     fp.close()
                     self._parent_dialog._file_dir_select.refresh_view()
-                    
+
             except FileExistsError:
                 self._parent_dialog.display_warning('File/Directory already exists!')
             except PermissionError:
@@ -503,7 +504,7 @@ class FileDialogButton(py_cui.ui.UIElement):
 
 
     def _handle_mouse_press(self, x, y):
-        """Handles mouse presses 
+        """Handles mouse presses
 
         Parameters
         ----------
@@ -530,7 +531,7 @@ class FileDialogButton(py_cui.ui.UIElement):
         if key_pressed == py_cui.keys.KEY_ENTER:
             self.perform_command()
 
-    
+
     def perform_command(self):
         if self.command is not None:
             if self._button_num == 1:
@@ -688,7 +689,7 @@ class FileDialogPopup(py_cui.popups.Popup):
 
     def get_absolute_start_pos(self):
         """Override of base class, computes position based on root dimensions
-        
+
         Returns
         -------
         start_x, start_y : int
@@ -704,7 +705,7 @@ class FileDialogPopup(py_cui.popups.Popup):
 
     def get_absolute_stop_pos(self):
         """Override of base class, computes position based on root dimensions
-        
+
         Returns
         -------
         stop_x, stop_y : int
@@ -793,12 +794,12 @@ class FileDialogPopup(py_cui.popups.Popup):
             self._filename_input.set_selected(False)
             self._file_dir_select.set_selected(True)
             self._file_dir_select._handle_mouse_press(x, y)
-            
+
         elif self._filename_input._contains_position(x, y):
             self._filename_input.set_selected(True)
             self._file_dir_select.set_selected(False)
             self._filename_input._handle_mouse_press(x, y)
-        
+
         elif self._submit_button._contains_position(x, y):
             self._submit_button._handle_mouse_press(x, y)
         elif self._cancel_button._contains_position(x, y):
@@ -807,7 +808,7 @@ class FileDialogPopup(py_cui.popups.Popup):
 
     def _draw(self):
         """Override of base class.
-        
+
         Here, we only draw a border, and then the individual form elements
         """
 

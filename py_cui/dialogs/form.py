@@ -4,7 +4,7 @@
 import py_cui.ui
 import py_cui.widgets
 import py_cui.popups
-
+from py_cui.widgets import TextBoxImplementation, MenuImplementation
 
 class DuplicateFormKeyError(Exception):
     """Error thrown when a duplicate form field key is passed
@@ -13,7 +13,7 @@ class DuplicateFormKeyError(Exception):
     pass
 
 
-class FormField(py_cui.ui.TextBoxImplementation):
+class FormField(TextBoxImplementation):
     """Class containing basic logic of a field in a form
 
     Attributes
@@ -68,7 +68,7 @@ class FormField(py_cui.ui.TextBoxImplementation):
 
     def is_required(self):
         """Checks if field is required
-        
+
         Returns
         -------
         required : bool
@@ -224,7 +224,7 @@ class FormImplementation(py_cui.ui.UIImplementation):
         super().__init__(logger)
         self._form_fields = field_implementations
         self._required_fields = required_fields
-        
+
         self._selected_form_index = 0
         self._on_submit_action = None
 
@@ -365,17 +365,17 @@ class FormPopup(py_cui.popups.Popup, FormImplementation):
             init_text = ''
             if field in fields_init_text:
                 init_text = fields_init_text[field]
-            self._form_fields.append(FormFieldElement(self, 
-                                              i, 
-                                              field, 
-                                              init_text, 
-                                              (field in passwd_fields), 
-                                              (field in required_fields), 
+            self._form_fields.append(FormFieldElement(self,
+                                              i,
+                                              field,
+                                              init_text,
+                                              (field in passwd_fields),
+                                              (field in required_fields),
                                               renderer,
                                               logger))
         self._form_fields[0].set_selected(True)
         FormImplementation.__init__(self, self._form_fields, required_fields, logger)
-        
+
         self._internal_popup = None
 
 
@@ -393,7 +393,7 @@ class FormPopup(py_cui.popups.Popup, FormImplementation):
 
     def get_absolute_start_pos(self):
         """Override of base class, computes position based on root dimensions
-        
+
         Returns
         -------
         start_x, start_y : int
@@ -409,9 +409,9 @@ class FormPopup(py_cui.popups.Popup, FormImplementation):
         min_required_y = 4 + (2 * self._pady) + 5 * self._num_fields
         if root_height < min_required_y:
             min_required_y = root_height
-        
+
         form_start_x = int(root_width / 2) - int(min_required_x / 2)
-        
+
         form_start_y = int(root_height / 2) - int(min_required_y / 2)
 
         return form_start_x, form_start_y
@@ -419,7 +419,7 @@ class FormPopup(py_cui.popups.Popup, FormImplementation):
 
     def get_absolute_stop_pos(self):
         """Override of base class, computes position based on root dimensions
-        
+
         Returns
         -------
         stop_x, stop_y : int
@@ -435,9 +435,9 @@ class FormPopup(py_cui.popups.Popup, FormImplementation):
         min_required_y = 4 + (2 * self._pady) + 5 * self._num_fields
         if root_height < min_required_y:
             min_required_y = root_height
-        
+
         form_stop_x = int(root_width / 2) + int(min_required_x / 2)
-        
+
         form_stop_y = int(root_height / 2) + int(min_required_y / 2)
 
         return form_stop_x, form_stop_y
@@ -480,11 +480,11 @@ class FormPopup(py_cui.popups.Popup, FormImplementation):
                     self._on_submit_action(self.get())
                 else:
                     self._internal_popup = InternalFormPopup(self,
-                                                             self._root, 
-                                                             err_msg, 
+                                                             self._root,
+                                                             err_msg,
                                                              'Required fields: {}'.format(str(self._required_fields)),
-                                                             py_cui.YELLOW_ON_BLACK, 
-                                                             self._renderer, 
+                                                             py_cui.YELLOW_ON_BLACK,
+                                                             self._renderer,
                                                              self._logger)
             elif key_pressed == py_cui.keys.KEY_ESCAPE:
                 self._root.close_popup()
@@ -517,7 +517,7 @@ class FormPopup(py_cui.popups.Popup, FormImplementation):
 
     def _draw(self):
         """Override of base class.
-        
+
         Here, we only draw a border, and then the individual form elements
         """
 
