@@ -16,15 +16,12 @@ class Grid:
 
 
     def __init__(self, gui, num_rows, num_columns, height, width):
+        self._gui           = gui
         self._num_rows      = num_rows
         self._num_columns   = num_columns
         self._height        = int(height)
         self._width         = int(width)
-        self._row_height    = int(self._height   / self._num_rows)
-        self._column_width  = int(self._width    / self._num_columns)
-        self._offset_x      = int((self._width % self._column_width) / 2)
-        self._offset_y      = int((self._height % self._row_height) / 2)
-        self._gui           = gui
+        self._update_size()
 
 
     def get_dimensions(self):
@@ -50,11 +47,12 @@ class Grid:
         if (3 * self._num_rows) >= self._height:
             raise py_cui.errors.PyCUIOutOfBoundsError
 
-        self._row_height    = int(self._height   / self._num_rows)
-        self._column_width  = int(self._width    / self._num_columns)
+        self._row_height    = int(self._height / self._num_rows)
+        self._column_width  = int(self._width / self._num_columns)
         self._offset_x      = int((self._width % self._column_width) / 2)
         self._offset_y      = int((self._height % self._row_height) / 2)
         self._gui._logger.info('Updated grid. Cell dims: {}x{}, Offsets {},{}'.format(self._row_height, self._column_width, self._offset_x, self._offset_y))
+
 
     def set_num_rows(self, num_rows):
         self._num_rows = num_rows

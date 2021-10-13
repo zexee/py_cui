@@ -127,9 +127,12 @@ class PyCUI:
 
         # Init terminal height width. Subtract 4 from height
         # for title/status bar and padding
-        self._height                = height
-        self._width                 = width
-        self._height_padding        = 4
+        self._height = height
+        self._width = width
+        self._top_padding = 1
+        self._bottom_padding = 1
+        self._left_padding = 0
+        self._right_padding = 0
 
         # Add status and title bar
         self.title_bar = py_cui.statusbar.StatusBar(self._title, BLACK_ON_WHITE)
@@ -274,7 +277,8 @@ class PyCUI:
         return py_cui.widget_set.WidgetSet(
             self,
             num_rows, num_cols,
-            self._height - self._height_padding, self._width)
+            self._height - self._top_padding - self._bottom_padding - 2,
+            self._width - self._left_padding - self._right_padding)
 
 
     # ----------------------------------------------#
@@ -695,7 +699,8 @@ class PyCUI:
     def _refresh_height_width(self, height, width):
         self._height = height
         self._width  = width
-        self._root._refresh_height_width(self._height - self._height_padding, self._width)
+        self._root._refresh_height_width(self._height - self._top_padding - self._bottom_padding - 2,
+                                         self._width - self._left_padding - self._right_padding)
         if self._popup is not None:
             self._popup.update_height_width()
 

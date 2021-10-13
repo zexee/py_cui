@@ -36,6 +36,7 @@ class Widget(py_cui.ui.UIElement):
 
         super().__init__(parent.get_next_id(), title, None, parent._logger)
         self._grid = parent._grid
+        self._parent = parent
         grid_rows, grid_cols = self._grid.get_dimensions()
         if (grid_cols < column + column_span) or (grid_rows < row + row_span):
             raise py_cui.errors.PyCUIOutOfBoundsError("Target grid too small for widget {}".format(title))
@@ -124,7 +125,7 @@ class Widget(py_cui.ui.UIElement):
 
         x_pos = self._column * col_width + offset_x
         # Always add two to the y_pos, because we have a title bar + a pad row
-        y_pos = self._row * row_height + offset_y + 2
+        y_pos = self._row * row_height + offset_y + self._parent._gui._top_padding + 1
         return x_pos, y_pos
 
 

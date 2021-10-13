@@ -104,49 +104,49 @@ class Renderer:
 
 
     def _draw_border_top(self, ui_element, y, with_title):
-        padx, _       = ui_element.get_padding()
-        start_x, _    = ui_element.get_start_position()
-        _, width      = ui_element.get_absolute_dimensions()
-        title         = ui_element.get_title()
+        start_x, _ = ui_element.get_widget_start_pos()
+        stop_x, _ = ui_element.get_widget_stop_pos()
+        width = stop_x - start_x + 1
+        title = ui_element.get_title()
 
         self.set_color_mode(ui_element.get_border_color())
-        if not with_title or (len(title) + 4 >= width - 2 * padx):
+        if not with_title or (len(title) + 4 > width):
             render_text = '{}{}{}'.format(
                 self._gui._border_characters['UP_LEFT'],
-                self._gui._border_characters['HORIZONTAL'] * (width - 2 - 2 * padx),
+                self._gui._border_characters['HORIZONTAL'] * (width - 2),
                 self._gui._border_characters['UP_RIGHT'])
-            self._gui._stdscr.addstr(y, start_x + padx, render_text)
+            self._gui._stdscr.addstr(y, start_x, render_text)
         else:
             render_text = '{}{} {} {}{}'.format(
                 self._gui._border_characters['UP_LEFT'],
                 self._gui._border_characters['HORIZONTAL'] * 2,
                 title,
-                self._gui._border_characters['HORIZONTAL'] * (width - 6 - 2 * padx - len(title)),
+                self._gui._border_characters['HORIZONTAL'] * (width - 6 - len(title)),
                 self._gui._border_characters['UP_RIGHT'])
-            self._gui._stdscr.addstr(y, start_x + padx, render_text)
+            self._gui._stdscr.addstr(y, start_x, render_text)
         self.unset_color_mode(ui_element.get_border_color())
 
 
     def _draw_border_bottom(self, ui_element, y):
-        padx, _       = ui_element.get_padding()
-        start_x, _    = ui_element.get_start_position()
-        _, width      = ui_element.get_absolute_dimensions()
-        footer        = ui_element.get_footer()
+        start_x, _ = ui_element.get_widget_start_pos()
+        stop_x, _ = ui_element.get_widget_stop_pos()
+        width = stop_x - start_x + 1
+        footer = ui_element.get_footer()
 
         self.set_color_mode(ui_element.get_border_color())
-        if not footer or len(footer) + 4 >= width - padx * 2:
+        if not footer or len(footer) + 4 > width:
             render_text = '{}{}{}'.format(
                 self._gui._border_characters['DOWN_LEFT'],
-                self._gui._border_characters['HORIZONTAL'] * (width - 2 - 2 * padx),
+                self._gui._border_characters['HORIZONTAL'] * (width - 2),
                 self._gui._border_characters['DOWN_RIGHT'])
         else:
             render_text = '{}{}[{}]{}{}'.format(
                 self._gui._border_characters['DOWN_LEFT'],
-                self._gui._border_characters['HORIZONTAL'] * (width - 6 - padx * 2 - len(footer)),
+                self._gui._border_characters['HORIZONTAL'] * (width - 6 - len(footer)),
                 footer,
                 self._gui._border_characters['HORIZONTAL'] * 2,
                 self._gui._border_characters['DOWN_RIGHT'])
-        self._gui._stdscr.addstr(y, start_x + padx, render_text)
+        self._gui._stdscr.addstr(y, start_x, render_text)
         self.unset_color_mode(ui_element.get_border_color())
 
 
@@ -194,7 +194,6 @@ class Renderer:
             if match:
                 return fragments
 
-        self._gui._logger.info('fr {} {}'.format(fragments[0][0], fragments[0][1]))
         return fragments
 
 
@@ -213,7 +212,6 @@ class Renderer:
         _, viewport_stop_y = ui_element.get_viewport_stop_pos()
         if y > viewport_stop_y:
             return
-        self._gui._logger.info('TEXT {}'.format(line))
 
         render_text = self._get_render_text(ui_element, line, centered, bordered, selected, start_pos)
         current_start_x = start_x
