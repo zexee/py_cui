@@ -351,14 +351,12 @@ class PyCUI:
             curses.init_pair(color_pair, fg_color, bg_color)
 
 
-    def toggle_unicode_borders(self):
-        """Function for toggling unicode based border rendering
-        """
+    def set_ansi_border(self):
+        self.set_widget_border_characters('+', '+', '+', '+', '-', '|', '=')
 
-        if self._border_characters is None or self._border_characters['UP_LEFT'] == '+':
-            self.set_widget_border_characters('\u256d', '\u256e', '\u2570', '\u256f', '\u2500', '\u2502', '=')
-        else:
-            self.set_widget_border_characters('+', '+', '+', '+', '-', '|', '=')
+
+    def set_unicode_borders(self):
+        self.set_widget_border_characters('\u256d', '\u256e', '\u2570', '\u256f', '\u2500', '\u2502', '\u2503')
 
 
     def set_widget_border_characters(self, upper_left_corner, upper_right_corner, lower_left_corner, lower_right_corner, horizontal, vertical, scroll):

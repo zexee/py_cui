@@ -50,4 +50,13 @@ if __name__ == '__main__':
     text2.set_text('\n'.join([menu.get() * i for i in range(10)]))
   menu.add_key_command(py_cui.keys.KEY_ENTER, ShowDetail);
 
+  check = root.add_widget(py_cui.widgets.CheckBoxMenu(root, "CheckBoxMenu Demo", 8, 4, 2, 3))
+  check.add_item('UTF8 Rendering')
+  def SetOptions():
+    if check.is_checked('UTF8 Rendering'):
+      gui.set_unicode_borders()
+    else:
+      gui.set_ansi_borders()
+  check._on_change = SetOptions
+
   gui.start()
