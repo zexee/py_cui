@@ -1,5 +1,6 @@
 from .widget import Widget
 from py_cui.ui import UIImplementation
+import py_cui.keys
 
 
 class SliderImplementation(UIImplementation):
@@ -104,7 +105,7 @@ class Slider(Widget, SliderImplementation):
     """
 
     def __init__(self, parent, title, row, column, row_span, column_span,
-                 padx, pady, min_val, max_val, step, init_val):
+                 padx=0, pady=0, min_val=0, max_val=100, step=1, init_val=50):
 
         SliderImplementation.__init__(self, min_val, max_val, init_val, step, parent._logger)
 
@@ -112,6 +113,7 @@ class Slider(Widget, SliderImplementation):
                                        row_span, column_span, padx,
                                        pady, selectable=True)
 
+        self._parent = parent
         self._title_enabled = True
         self._border_enabled = True
         self._display_value = True
@@ -171,26 +173,25 @@ class Slider(Widget, SliderImplementation):
         """
 
         # having closer reference allow faster access. More dot access means more scopes to search for.
-        renderer = self.get_renderer()
         ui_element = self
 
-        renderer.set_color_mode(ui_element.get_border_color())
+        self._parent._renderer.set_color_mode(ui_element.get_border_color())
 
-        if ui_element.is_selected():
-            renderer._set_bold()
-            renderer._draw_border_top(ui_element, start_y, False)
+        if ui_element.is_focused():
+            self._parent._renderer._set_bold()
+            self._parent._renderer._draw_border_top(ui_element, start_y, False)
 
-            renderer.draw_text(ui_element, content, start_y + 1, selected=True, bordered=True)
-            renderer._set_bold()
+            self._parent._renderer.draw_text(ui_element, content, start_y + 1, selected=True, bordered=True)
+            self._parent._renderer._set_bold()
 
-            renderer._draw_border_bottom(ui_element, start_y + 2)
-            renderer._unset_bold()
+            self._parent._renderer._draw_border_bottom(ui_element, start_y + 2)
+            self._parent._renderer._unset_bold()
         else:
-            renderer._draw_border_top(ui_element, start_y, False)
-            renderer.draw_text(ui_element, content, start_y + 1, selected=False, bordered=True)
-            renderer._draw_border_bottom(ui_element, start_y + 2)
+            self._parent._renderer._draw_border_top(ui_element, start_y, False)
+            self._parent._renderer.draw_text(ui_element, content, start_y + 1, selected=False, bordered=True)
+            self._parent._renderer._draw_border_bottom(ui_element, start_y + 2)
 
-        renderer.unset_color_mode(ui_element.get_border_color())
+        self._parent._renderer.unset_color_mode(ui_element.get_border_color())
 
 
     def _generate_bar(self, width: int) -> str:
@@ -226,7 +227,7 @@ class Slider(Widget, SliderImplementation):
         """
 
         super()._draw()
-        self._renderer.set_color_mode(self._color)
+        self._parent._renderer.set_color_mode(self._color)
 
         height, width = self.get_absolute_dimensions()
         visual_height = (2 if self._border_enabled else 0) + (1 if self._title_enabled else 0)
@@ -239,8 +240,8 @@ class Slider(Widget, SliderImplementation):
             text_y_pos = self._start_y + height - visual_height - 1
 
         if self._title_enabled:
-            self._renderer.draw_text(
-                self, self.get_title(), text_y_pos, selected=self.is_selected(), bordered=False
+            self._parent._renderer.draw_text(
+                self, self.get_title(), text_y_pos, selected=self.is_focused(), bordered=False
             )
             text_y_pos += 1
 
@@ -249,11 +250,11 @@ class Slider(Widget, SliderImplementation):
             self._custom_draw_with_border(text_y_pos, self._generate_bar(width))
         else:
             width -= 2
-            self._renderer.draw_text(
-                self, self._generate_bar(width), text_y_pos, selected=self.is_selected(), bordered=False
+            self._parent._renderer.draw_text(
+                self, self._generate_bar(width), text_y_pos, selected=self.is_focused(), bordered=False
             )
 
-        self._renderer.unset_color_mode(self._color)
+        self._parent._renderer.unset_color_mode(self._color)
 
 
     def _handle_key_press(self, key_pressed):

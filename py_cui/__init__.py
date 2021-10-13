@@ -351,7 +351,7 @@ class PyCUI:
             curses.init_pair(color_pair, fg_color, bg_color)
 
 
-    def set_ansi_border(self):
+    def set_ansi_borders(self):
         self.set_widget_border_characters('+', '+', '+', '+', '-', '|', '=')
 
 

@@ -79,8 +79,10 @@ class CheckBoxMenu(Widget, CheckBoxMenuImplementation):
         viewport_top = self._start_y + self._pady + 1
         if viewport_top <= y and viewport_top + len(self._view_items) - self._top_view >= y:
             elem_clicked = y - viewport_top + self._top_view
-            self.set_selected_item_index(elem_clicked)
-            self.mark_item_as_checked(self._view_items[elem_clicked])
+            if elem_clicked < len(self._view_items):
+              self.set_selected_item_index(elem_clicked)
+              self.mark_item_as_checked(self._view_items[elem_clicked])
+              self._on_change()
 
 
     def _handle_key_press(self, key_pressed):

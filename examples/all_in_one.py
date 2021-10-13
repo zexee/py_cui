@@ -52,11 +52,8 @@ if __name__ == '__main__':
 
   check = root.add_widget(py_cui.widgets.CheckBoxMenu(root, "CheckBoxMenu Demo", 8, 4, 2, 3))
   check.add_item('UTF8 Rendering')
-  def SetOptions():
-    if check.is_checked('UTF8 Rendering'):
-      gui.set_unicode_borders()
-    else:
-      gui.set_ansi_borders()
-  check._on_change = SetOptions
+  check._on_change = lambda: gui.set_unicode_borders() if check.is_checked('UTF8 Rendering') else gui.set_ansi_borders()
+
+  slider = root.add_widget(py_cui.widgets.Slider(root, "Slider Demo", 1, 7, 1, 3))
 
   gui.start()
