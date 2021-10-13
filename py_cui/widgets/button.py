@@ -47,7 +47,7 @@ class Button(Widget):
         self._parent._renderer.set_color_mode(self.get_color())
         self._parent._renderer.draw_border(self, with_title=False)
         button_text_y_pos = self._start_y + int(self._height / 2)
-        self._parent._renderer.draw_text(self, self._title, button_text_y_pos, centered=True)
+        self._parent._renderer.draw_text(self, self._title, button_text_y_pos, centered=True, selected=self.is_hovering())
         self._parent._renderer.reset_cursor(self)
         self._parent._renderer.unset_color_mode(self.get_color())
 

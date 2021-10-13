@@ -315,6 +315,7 @@ class ScrollMenu(Widget, MenuImplementation):
         super()._draw()
         self._parent._renderer.set_color_mode(self._color)
         self._parent._renderer.draw_border(self)
+
         posy = self._pady + 1
         self._bottom_view = self._top_view
         self._logger.info("menu {} {}".format(self._height, self._pady))
