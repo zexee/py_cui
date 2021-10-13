@@ -11,7 +11,7 @@ import re
 
 
 # Curses color configuration - curses colors automatically work as pairs, so it was easiest to
-# create these values as pairs off the bat to be selected.
+# create these values as pairs off the bat to be focused.
 # Format is FOREGROUND_ON_BACKGROUND
 
 # Black background colors
@@ -167,17 +167,17 @@ class ColorRule:
         Flag to determine whether to strip whitespace before matching.
     """
 
-    def __init__(self, regex, color, selected_color, rule_type, match_type, region, include_whitespace, logger):
+    def __init__(self, regex, color, focus_color, rule_type, match_type, region, include_whitespace, logger):
         """Constructor for ColorRule object
-            
+
         Parameters
         ----------
         regex : str
             A python 're' module string
         color : int
             A valid color value. Ex. py_cui.WHITE_ON_BLACK
-        selected_color : int
-            Color to use if rule matched but selected modifier is applied
+        focus_color : int
+            Color to use if rule matched but focus modifier is applied
         rule_type : str
             String representing rule type. ['startswith', 'endswith', 'notstartswith', 'notendswith', 'contains']
         match_type : str
@@ -187,10 +187,10 @@ class ColorRule:
         include_whitespace : bool
             Flag to determine whether to strip whitespace before matching.
         """
-        
+
         self._regex            = regex
         self._color            = color
-        self._selected_color   = selected_color
+        self._focus_color      = focus_color
         self._rule_type        = rule_type
         self._match_type       = match_type
         self._region           = region
@@ -207,7 +207,7 @@ class ColorRule:
 
     def _check_match(self, line):
         """Checks if the color rule matches a line
-        
+
         Parameters
         ----------
         line : str
@@ -242,9 +242,9 @@ class ColorRule:
         return False
 
 
-    def _generate_fragments_regex(self, widget, render_text, selected):
+    def _generate_fragments_regex(self, widget, render_text, focused):
         """Splits text into fragments based on regular expression
-        
+
         Parameters
         ----------
         widget : py_cui.Widget
@@ -264,25 +264,18 @@ class ColorRule:
         for match in matches:
             temp = current_render_text.split(match, 1)
             if len(temp) == 2:
-                if selected:
-                    fragments.append([temp[0], widget.get_selected_color()])
-                    fragments.append([match, self._selected_color])
-                else:
-                    fragments.append([temp[0], widget.get_color()])
-                    fragments.append([match, self._color])
+                fragments.append([temp[0], widget.get_focus_color() if focused else widget.get_color()])
+                fragments.append([match, self._focus_color if focused else self._color])
                 current_render_text = temp[1]
 
-        if selected:
-            fragments.append([current_render_text, widget.get_selected_color()])
-        else:
-            fragments.append([current_render_text, widget.get_color()])
+        fragments.append([current_render_text, widget.get_focus_color() if focused else widget.get_color()])
 
         return fragments
 
 
-    def _split_text_on_region(self, widget, render_text, selected):
+    def _split_text_on_region(self, widget, render_text, focused):
         """Splits text into fragments based on region
-        
+
         Parameters
         ----------
         widget : py_cui.Widget
@@ -297,69 +290,33 @@ class ColorRule:
         """
 
         fragments = []
-        
+
         if self._region is None or len(render_text) < self._region[0]:
-            if selected:
-                return [[render_text, widget.get_selected_color()]]
-            else:
-                return [[render_text, widget.get_color()]]
+            return [[render_text, widget.get_focus_color() if focused else widget.get_color()]]
         elif len(render_text) < self._region[1]:
             self._region[1] = len(render_text)
-        
+
         if self._region[0] != 0:
-            if selected:
-                fragments.append([render_text[0:self._region[0]], widget.get_selected_color()])
-            else:
-                fragments.append([render_text[0:self._region[0]], widget.get_color()])
-        
-        if selected:
-            fragments.append([render_text[self._region[0]:self._region[1]], self._selected_color])
-            fragments.append([render_text[self._region[1]:], widget.get_selected_color()])
-        else:
-            fragments.append([render_text[self._region[0]:self._region[1]], self._color])
-            fragments.append([render_text[self._region[1]:], widget.get_color()])
+            fragments.append([render_text[0:self._region[0]], widget.get_focus_color() if focused else widget.get_color()])
+
+        fragments.append([render_text[self._region[0]:self._region[1]], self._focus_color if focused else self._color])
+        fragments.append([render_text[self._region[1]:], widget.get_focus_color() if focused else widget.get_color()])
 
         return fragments
 
 
-    def generate_fragments(self, widget, line, render_text, selected=False):
-        """Splits text into fragments if matched line to regex
-        
-        Parameters
-        ----------
-        widget : py_cui.Widget
-            Widget containing the render text
-        line : str
-            the line to match
-        render_text : str
-            text being rendered
-
-        Returns
-        -------
-        fragments : List[List[str, color]]
-            the render text split into fragments of strings paired with colors
-        matched : bool
-            Boolean output saying if a match was found in the line.
-        """
-
+    def generate_fragments(self, widget, line, render_text, focused=False):
         match       = self._check_match(line)
-        if selected:
-            fragments = [[render_text, widget.get_selected_color()]]
-        else:
-            fragments = [[render_text, widget.get_color()]]
-        
-        if match:
+        fragments = [[render_text, widget.get_focus_color() if focused else widget.get_color()]]
 
+        if match:
             if self._match_type == 'line':
-                if selected:
-                    fragments = [[render_text, self._selected_color]]
-                else:
-                    fragments = [[render_text, self._color]]
+                fragments = [[render_text, self._focus_color if focused else self._color]]
             elif self._match_type == 'regex':
-                fragments = self._generate_fragments_regex(widget, render_text, selected)
+                fragments = self._generate_fragments_regex(widget, render_text, focused)
             elif self._match_type == 'region':
-                fragments = self._split_text_on_region(widget, render_text, selected)
-        
+                fragments = self._split_text_on_region(widget, render_text, focused)
+
             self._logger.info('Generated fragments: {}'.format(fragments))
-        
+
         return fragments, match

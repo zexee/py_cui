@@ -20,41 +20,9 @@ class UIElement:
     of the base widget class, and the TextBoxImplementation. The TextBoxImplementation
     superclass contains logic for all textbox required operations, while the widget base
     class contains all links to the CUI engine.
-
-    Attributes
-    ----------
-    _id : str
-        Internal UI element unique ID
-    _title : str
-        UI element title
-    _padx, pady : int, int
-        padding in terminal characters
-    _start_x, _start_y: int, int
-        Coords in terminal characters for top-left corner of element
-    _stop_x, _stop_y : int, int
-        Coords in terminal characters for bottom-right corner of element
-    _height, width : int, int
-        absolute dimensions of ui element in terminal characters
-    _color : int
-        Default color for which to draw element
-    _border_color: int
-        Color used to draw the border of the element when not focused
-    _focus_border_color: int
-        Color used to draw the border of the element when focused
-    _selected : bool
-        toggle for marking an element as selected
-    _renderer : py_cui.renderer.Renderer
-        The default ui renderer
-    _logger   : py_cui.debug.PyCUILogger
-        The default logger inherited from the parent
-    _help_text: str
-        Text to diplay when selected in status bar
     """
 
     def __init__(self, id, title, renderer, logger):
-        """Initializer for UIElement base class
-        """
-
         self._id                        = id
         self._title                     = title
         self._footer                    = ''
@@ -66,13 +34,20 @@ class UIElement:
         # Default UI Element color is white on black.
         self._color                     = py_cui.WHITE_ON_BLACK
         self._border_color              = self._color
-        self._focus_border_color        = self._color
-        self._selected_color            = self._color
+        self._hover_border_color        = self._color
+        self._focus_border_color        = py_cui.BLACK_ON_WHITE
+        self._selected_color            = self._color  # text color if focused
         self._mouse_press_handler       = None
-        self._selected                  = False
+        self._hovering                  = False
+        self._focused                   = False
         self._renderer                  = renderer
         self._logger                    = logger
         self._help_text                 = ''
+        self._single_line_mode          = False
+
+
+    def set_single_line_mode(self):
+        self._single_line_mode = True
 
 
     def get_absolute_start_pos(self):
@@ -90,162 +65,100 @@ class UIElement:
 
 
     def get_absolute_dimensions(self):
-        """Gets dimensions of element in terminal characters
-
-        Returns
-        -------
-        height, width : int, int
-            Dimensions of element in terminal characters
-        """
         start_x,    start_y = self.get_absolute_start_pos()
         stop_x,     stop_y  = self.get_absolute_stop_pos()
         return (stop_y - start_y), (stop_x - start_x)
 
 
+    def get_widget_start_pos(self):
+        return (self._start_x + self._padx,
+                self._start_y + int(self._height / 2) - 1
+                    if self._single_line_mode
+                    else self._start_y + self._pady)
+
+
+    def get_widget_stop_pos(self):
+        return (self._stop_x - self._padx - 1,
+                self._start_y + int(self._height / 2) + 1
+                    if self._single_line_mode
+                    else self._stop_y - self._pady - 1)
+
+
+    def get_viewport_start_pos(self):
+        x, y = self.get_widget_start_pos()
+        return x + 1, y + 1
+
+
+    def get_viewport_stop_pos(self):
+        x, y = self.get_widget_stop_pos()
+        return x - 1, y - 1
+
+
     def update_height_width(self):
-        """Function that refreshes position and dimensons on resize.
-
-        If necessary, make sure required widget attributes updated here as well.
-        """
-
         self._start_x, self._start_y  = self.get_absolute_start_pos()
         self._stop_x,  self._stop_y   = self.get_absolute_stop_pos()
         self._height,  self._width    = self.get_absolute_dimensions()
 
 
+    def get_viewport_width(self):
+      startx, _ = self.get_viewport_start_pos()
+      stopx, _ = self.get_viewport_start_pos()
+      return stopx - startx + 1
+
+
     def get_viewport_height(self):
-        """Gets the height of the element viewport (height minus padding and borders)
-
-        Returns
-        -------
-        viewport_height : int
-            Height of element viewport in terminal characters
-        """
-
-        return self._height - (2 * self._pady) - 2
+      _, starty = self.get_viewport_start_pos()
+      _, stopy = self.get_viewport_stop_pos()
+      return stopy - starty + 1
 
 
     def get_id(self):
-        """Gets the element ID
-
-        Returns
-        -------
-        id : int
-            The ui element id
-        """
-
         return self._id
 
 
     def get_title(self):
-        """Getter for ui element title
-
-        Returns
-        -------
-        title : str
-            UI element title
-        """
-
         return self._title
 
 
     def get_footer(self):
-        """Getter for ui element footer
-
-        Returns
-        -------
-        footer : str
-            UI element title
-        """
-
         return self._footer
 
 
     def get_padding(self):
-        """Gets ui element padding on in characters
-
-        Returns
-        -------
-        padx, pady : int, int
-            Padding on either axis in characters
-        """
-
         return self._padx, self._pady
 
 
     def get_start_position(self):
-        """Gets coords of upper left corner
-
-        Returns
-        -------
-        start_x, start_y : int, int
-            Coords of upper right corner
-        """
-
         return self._start_x, self._start_y
 
 
     def get_stop_position(self):
-        """Gets coords of lower right corner
-
-        Returns
-        -------
-        stop_x, stop_y : int, int
-            Coords of lower right corner
-        """
-
         return self._stop_x, self._stop_y
 
 
     def get_color(self):
-        """Gets current element color
-
-        Returns
-        -------
-        color : int
-            color code for combination
-        """
-
         return self._color
 
 
+    def get_selected_color(self):
+        return self._selected_color
+
+
     def get_border_color(self):
-        """Gets current element border color
-
-        Returns
-        -------
-        color : int
-            color code for combination
-        """
-
-        if self._selected:
+        if self._focused:
             return self._focus_border_color
+        if self._hovering:
+            return self._hover_border_color
         else:
             return self._border_color
 
 
-    def get_selected_color(self):
-        """Gets current selected item color
-
-        Returns
-        -------
-        color : int
-            color code for combination
-        """
-
-        return self._selected_color
+    def is_hovering(self):
+        return self._hovering
 
 
-    def is_selected(self):
-        """Get selected status
-
-        Returns
-        -------
-        selected : bool
-            True if selected, False otherwise
-        """
-
-        return self._selected
+    def is_focused(self):
+        return self._focused
 
 
     def get_renderer(self):
@@ -309,58 +222,33 @@ class UIElement:
             self._border_color = color
         if self._focus_border_color == self._color:
             self._focus_border_color = color
-        if self._selected_color == self._color:
-            self._selected_color = color
+        if self._hover_border_color == self._color:
+            self._hover_border_color = color
         self._color = color
 
 
     def set_border_color(self, color):
-        """Sets element border color
-
-        Parameters
-        ----------
-        color : int
-            New color pair key code
-        """
-
         self._border_color = color
 
 
     def set_focus_border_color(self, color):
-        """Sets element border color if the current element
-        is focused
-
-        Parameters
-        ----------
-        color : int
-            New color pair key code
-        """
-
         self._focus_border_color = color
 
 
+    def set_hovering_border_color(self, color):
+        self._hovering_border_color = color
+
+
     def set_selected_color(self, color):
-        """Sets element sected color
-
-        Parameters
-        ----------
-        color : int
-            New color pair key code
-        """
-
         self._selected_color = color
 
 
-    def set_selected(self, selected):
-        """Marks the UI element as selected or not selected
+    def set_hovering(self, hovering):
+        self._hovering = hovering
 
-        Parameters
-        ----------
-        selected : bool
-            The new selected state of the element
-        """
 
-        self._selected = selected
+    def set_focused(self, focused):
+        self._focused = focused
 
 
     def set_help_text(self, help_text):

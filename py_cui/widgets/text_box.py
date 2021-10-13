@@ -1,5 +1,6 @@
 from .widget import Widget
 from py_cui.ui import UIImplementation
+import py_cui.keys
 
 
 class TextBoxImplementation(UIImplementation):
@@ -37,6 +38,7 @@ class TextBoxImplementation(UIImplementation):
         self._cursor_max_right = 0
         self._cursor_y         = 0
         self._viewport_width   = 0
+
 
     # Variable getter + setter functions
 
@@ -209,12 +211,14 @@ class TextBox(Widget, TextBoxImplementation):
     """Widget for entering small single lines of text
     """
 
-    def __init__(self, id, title, grid, row, column, row_span, column_span, padx, pady, logger, initial_text, password):
+    def __init__(self, parent, title, row, column, row_span, column_span, padx=0, pady=0, initial_text='', password=''):
         """Initializer for TextBox widget. Uses TextBoxImplementation as base
         """
 
-        Widget.__init__(self, id, title, grid, row, column, row_span, column_span, padx, pady, logger)
-        TextBoxImplementation.__init__(self, initial_text, password, logger)
+        Widget.__init__(self, parent, title, row, column, row_span, column_span, padx, pady)
+        TextBoxImplementation.__init__(self, initial_text, password, parent._logger)
+        self._single_line_mode = True
+        self._parent = parent
         self.update_height_width()
         self.set_help_text('Focus mode on TextBox. Press Esc to exit focus mode.')
 
@@ -232,7 +236,7 @@ class TextBox(Widget, TextBoxImplementation):
         self._cursor_x           = start_x + padx + 2
         self._cursor_max_left    = start_x + padx + 2
         self._cursor_max_right   = start_x + width - padx - 1
-        self._cursor_y           = start_y + int(height / 2) + 1
+        self._cursor_y           = start_y + int(height / 2)
         self._viewport_width     = self._cursor_max_right - self._cursor_max_left
 
 
@@ -258,14 +262,6 @@ class TextBox(Widget, TextBoxImplementation):
 
 
     def _handle_key_press(self, key_pressed):
-        """Override of base handle key press function
-
-        Parameters
-        ----------
-        key_pressed : int
-            key code of key pressed
-        """
-
         super()._handle_key_press(key_pressed)
         if key_pressed == py_cui.keys.KEY_LEFT_ARROW:
             self._move_left()
@@ -290,9 +286,9 @@ class TextBox(Widget, TextBoxImplementation):
 
         super()._draw()
 
-        self._renderer.set_color_mode(self._color)
-        self._renderer.draw_text(self, self._title, self._cursor_y - 2, bordered=False)
-        self._renderer.draw_border(self, fill=False, with_title=False)
+        self._parent._renderer.set_color_mode(self._color)
+        # self._parent._renderer.draw_text(self, self._title, self._cursor_y - 2, bordered=False)
+        self._parent._renderer.draw_border(self, with_title=True)
         render_text = self._text
         if len(self._text) > self._width - 2 * self._padx - 4:
             end = len(self._text) - (self._width - 2 * self._padx - 4)
@@ -304,11 +300,12 @@ class TextBox(Widget, TextBoxImplementation):
             temp = '*' * len(render_text)
             render_text = temp
 
-        self._renderer.draw_text(self, render_text, self._cursor_y, selected=self._selected)
-        if self._selected:
-            self._renderer.draw_cursor(self._cursor_y, self._cursor_x)
+        self._parent._logger.info('TEXT {}'.format(render_text))
+        self._parent._renderer.draw_text(self, render_text, self._cursor_y, selected=self._focused)
+        if self._focused:
+            self._parent._renderer.draw_cursor(self._cursor_y, self._cursor_x)
         else:
-            self._renderer.reset_cursor(self, fill=False)
-        self._renderer.unset_color_mode(self._color)
+            self._parent._renderer.reset_cursor(self)
+        self._parent._renderer.unset_color_mode(self._color)
 
 

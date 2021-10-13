@@ -1,5 +1,6 @@
 from .widget import Widget
 from py_cui.ui import UIImplementation
+import py_cui.keys
 
 
 class TextBlockImplementation(UIImplementation):
@@ -408,12 +409,13 @@ class ScrollTextBlock(Widget, TextBlockImplementation):
     """Widget for editing large multi-line blocks of text
     """
 
-    def __init__(self, id, title, grid, row, column, row_span, column_span, padx, pady, logger, initial_text):
+    def __init__(self, parent, title, row, column, row_span, column_span, padx=0, pady=0, initial_text=''):
         """Initializer for TextBlock Widget. Uses TextBlockImplementation as base
         """
 
-        Widget.__init__(self, id, title, grid, row, column, row_span, column_span, padx, pady, logger)
-        TextBlockImplementation.__init__(self, initial_text, logger)
+        Widget.__init__(self, parent, title, row, column, row_span, column_span, padx, pady)
+        TextBlockImplementation.__init__(self, initial_text, parent._logger)
+        self._parent = parent
         self.update_height_width()
         self.set_help_text('Focus mode on TextBlock. Press Esc to exit focus mode.')
 
@@ -518,23 +520,23 @@ class ScrollTextBlock(Widget, TextBlockImplementation):
 
         super()._draw()
 
-        self._renderer.set_color_mode(self._color)
-        self._renderer.draw_border(self)
+        self._parent._renderer.set_color_mode(self._color)
+        self._parent._renderer.draw_border(self)
         posy = self._cursor_max_up
         lastline = self._viewport_y_start
         for linei in range(self._viewport_y_start, self._viewport_y_start + self._viewport_height + 1):
             if linei >= len(self._text_lines):
                 break
             render_text = self._text_lines[linei]
-            self._renderer.draw_text(self, render_text, posy,
-                start_pos=self._viewport_x_start, selected=self._selected)
+            self._parent._renderer.draw_text(self, render_text, posy,
+                start_pos=self._viewport_x_start, selected=self._focused)
             lastline = linei
             posy += 1
-        self._renderer.draw_scrollbar(self, self._viewport_y_start + 1, lastline + 1, len(self._text_lines))
-        if self._selected:
-            self._renderer.draw_cursor(self._cursor_y, self._cursor_x)
+        self._parent._renderer.draw_scrollbar(self, self._viewport_y_start + 1, lastline + 1, len(self._text_lines))
+        if self._focused:
+            self._parent._renderer.draw_cursor(self._cursor_y, self._cursor_x)
         else:
-            self._renderer.reset_cursor(self)
-        self._renderer.unset_color_mode(self._color)
+            self._parent._renderer.reset_cursor(self)
+        self._parent._renderer.unset_color_mode(self._color)
 
 

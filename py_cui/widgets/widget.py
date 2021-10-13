@@ -27,18 +27,15 @@ class Widget(py_cui.ui.UIElement):
         color rules to load into renderer when drawing widget
     """
 
-    def __init__(self, id, title, grid, row, column, row_span, column_span, padx, pady, logger, selectable = True):
+    def __init__(self, parent, title, row, column, row_span, column_span, padx, pady, selectable = True):
         """Initializer for base widget class
 
         Calss UIElement superclass initialzier, and then assigns widget to grid, along with row/column info
         and color rules and key commands
         """
 
-        super().__init__(id, title, None, logger)
-        if grid is None:
-            raise py_cui.errors.PyCUIMissingParentError("Cannot add widget to NoneType")
-
-        self._grid = grid
+        super().__init__(parent.get_next_id(), title, None, parent._logger)
+        self._grid = parent._grid
         grid_rows, grid_cols = self._grid.get_dimensions()
         if (grid_cols < column + column_span) or (grid_rows < row + row_span):
             raise py_cui.errors.PyCUIOutOfBoundsError("Target grid too small for widget {}".format(title))

@@ -13,12 +13,13 @@ class Button(Widget):
         A no-args function to run when the button is pressed.
     """
 
-    def __init__(self, id, title, grid, row, column, row_span, column_span, padx, pady, logger, command):
+    def __init__(self, parent, title, row, column, row_span, column_span, padx, pady, command):
         """Initializer for Button Widget
         """
 
-        super().__init__(id, title, grid, row, column, row_span, column_span, padx, pady, logger)
+        super().__init__(parent, title, row, column, row_span, column_span, padx, pady)
         self.command = command
+        self._parent = parent
         self.set_color(py_cui.MAGENTA_ON_BLACK)
         self.set_help_text('Focus mode on Button. Press Enter to press button, Esc to exit focus mode.')
 
@@ -43,11 +44,11 @@ class Button(Widget):
         """
 
         super()._draw()
-        self._renderer.set_color_mode(self.get_color())
-        self._renderer.draw_border(self, with_title=False)
+        self._parent._renderer.set_color_mode(self.get_color())
+        self._parent._renderer.draw_border(self, with_title=False)
         button_text_y_pos = self._start_y + int(self._height / 2)
-        self._renderer.draw_text(self, self._title, button_text_y_pos, centered=True, selected=self._selected)
-        self._renderer.reset_cursor(self)
-        self._renderer.unset_color_mode(self.get_color())
+        self._parent._renderer.draw_text(self, self._title, button_text_y_pos, centered=True)
+        self._parent._renderer.reset_cursor(self)
+        self._parent._renderer.unset_color_mode(self.get_color())
 
 

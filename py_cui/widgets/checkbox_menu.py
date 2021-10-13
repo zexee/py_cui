@@ -79,12 +79,12 @@ class CheckBoxMenu(Widget, CheckBoxMenuImplementation):
         Character to represent a checked item
     """
 
-    def __init__(self, id, title, grid, row, column, row_span, column_span, padx, pady, logger, checked_char):
+    def __init__(self, parent, title, row, column, row_span, column_span, padx, pady, checked_char):
         """Initializer for CheckBoxMenu Widget
         """
 
-        Widget.__init__(self,id, title, grid, row, column, row_span, column_span, padx, pady, logger)
-        py_cui.ui.CheckBoxMenuImplementation.__init__(self, logger, checked_char)
+        Widget.__init__(self, parent, title, row, column, row_span, column_span, padx, pady)
+        py_cui.ui.CheckBoxMenuImplementation.__init__(self, parent._logger, checked_char)
         self.set_help_text('Focus mode on CheckBoxMenu. Use up/down to scroll, Enter to toggle set, unset, Esc to exit.')
 
 

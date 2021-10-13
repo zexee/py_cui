@@ -1,3 +1,4 @@
+import py_cui.keys
 from .widget import Widget
 from py_cui.ui import UIImplementation
 
@@ -70,7 +71,10 @@ class MenuImplementation(UIImplementation):
 
 
     def _set_footer(self):
-        self.set_footer('{}/{}'.format(self._selected_item + 1, self.get_item_size()))
+        if self.get_item_size() > 0:
+            self.set_footer('{}/{}'.format(self._selected_item + 1, self.get_item_size()))
+        else:
+            self.set_footer('')
 
 
     def _scroll_up(self):
@@ -196,6 +200,11 @@ class MenuImplementation(UIImplementation):
         self._set_footer()
 
 
+    def clear_items(self):
+        while self.get_item_size() > 0:
+            self.remove_selected_item()
+
+
     def get_item_list(self):
         """Function that gets list of items in a scroll menu
 
@@ -243,12 +252,13 @@ class ScrollMenu(Widget, MenuImplementation):
     """A scroll menu widget.
     """
 
-    def __init__(self, id, title, grid, row, column, row_span, column_span, padx, pady, logger):
+    def __init__(self, parent, title, row, column, row_span=1, column_span=1, padx=0, pady=0):
         """Initializer for scroll menu. calls superclass initializers and sets help text
         """
 
-        Widget.__init__(self, id, title, grid, row, column, row_span, column_span, padx, pady, logger)
-        MenuImplementation.__init__(self, logger)
+        Widget.__init__(self, parent, title, row, column, row_span, column_span, padx, pady)
+        MenuImplementation.__init__(self, parent._logger)
+        self._parent = parent
         self.set_help_text('Focus mode on ScrollMenu. Use Up/Down/PgUp/PgDown/Home/End to scroll, Esc to exit.')
 
 
@@ -303,20 +313,20 @@ class ScrollMenu(Widget, MenuImplementation):
         """
 
         super()._draw()
-        self._renderer.set_color_mode(self._color)
-        self._renderer.draw_border(self)
+        self._parent._renderer.set_color_mode(self._color)
+        self._parent._renderer.draw_border(self)
         posy = self._pady + 1
         self._bottom_view = self._top_view
         self._logger.info("menu {} {}".format(self._height, self._pady))
         for itemi in range(self._top_view, len(self._view_items)):
-            posy += self._renderer.draw_text(self, str(self._view_items[itemi]),
+            posy += self._parent._renderer.draw_text(self, str(self._view_items[itemi]),
                 self._start_y + posy, selected=itemi == self._selected_item)
             if posy <= self._height - self._pady - 1:
               self._bottom_view = itemi
             if posy >= self._height - self._pady - 1:
                 break
-        self._renderer.draw_scrollbar(self, self._top_view + 1, self._bottom_view + 1, len(self._view_items))
-        self._renderer.unset_color_mode(self._color)
-        self._renderer.reset_cursor(self)
+        self._parent._renderer.draw_scrollbar(self, self._top_view + 1, self._bottom_view + 1, len(self._view_items))
+        self._parent._renderer.unset_color_mode(self._color)
+        self._parent._renderer.reset_cursor(self)
 
 

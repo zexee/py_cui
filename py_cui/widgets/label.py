@@ -12,12 +12,13 @@ class Label(Widget):
         Toggle for drawing label border
     """
 
-    def __init__(self, id, title,  grid, row, column, row_span, column_span, padx, pady, logger):
+    def __init__(self, parent, title, row, column, row_span=1, column_span=1, padx=0, pady=0):
         """Initalizer for Label widget
         """
 
-        super().__init__(id, title, grid, row, column, row_span, column_span, padx, pady, logger, selectable=False)
+        super().__init__(parent, title, row, column, row_span, column_span, padx, pady, selectable=False)
         self._draw_border = False
+        self._parent = parent
 
 
     def toggle_border(self):
@@ -34,11 +35,11 @@ class Label(Widget):
         """
 
         super()._draw()
-        self._renderer.set_color_mode(self._color)
+        self._parent._renderer.set_color_mode(self._color)
         if self._draw_border:
-            self._renderer.draw_border(self, with_title=False)
+            self._parent._renderer.draw_border(self, with_title=False)
         target_y = self._start_y + int(self._height / 2)
-        self._renderer.draw_text(self, self._title, target_y, centered=True, bordered=self._draw_border)
-        self._renderer.unset_color_mode(self._color)
+        self._parent._renderer.draw_text(self, self._title, target_y, centered=True, bordered=self._draw_border)
+        self._parent._renderer.unset_color_mode(self._color)
 
 

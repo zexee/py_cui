@@ -1,9 +1,8 @@
-import py_cui.ui
-import py_cui.widgets
-import py_cui.popups
+from .widget import Widget
+from py_cui.ui import UIImplementation
 
 
-class SliderImplementation(py_cui.ui.UIImplementation):
+class SliderImplementation(UIImplementation):
 
     def __init__(self, min_val, max_val, init_val, step, logger):
         super().__init__(logger)
@@ -88,7 +87,7 @@ class SliderImplementation(py_cui.ui.UIImplementation):
         self._step = step
 
 
-class SliderWidget(py_cui.widgets.Widget, SliderImplementation):
+class Slider(Widget, SliderImplementation):
     """
     Widget for a Slider
 
@@ -104,14 +103,14 @@ class SliderWidget(py_cui.widgets.Widget, SliderImplementation):
         Initial value of the slider
     """
 
-    def __init__(self, id, title, grid, row, column, row_span, column_span,
-                 padx, pady, logger, min_val, max_val, step, init_val):
+    def __init__(self, parent, title, row, column, row_span, column_span,
+                 padx, pady, min_val, max_val, step, init_val):
 
-        SliderImplementation.__init__(self, min_val, max_val, init_val, step, logger)
+        SliderImplementation.__init__(self, min_val, max_val, init_val, step, parent._logger)
 
-        py_cui.widgets.Widget.__init__(self, id, title, grid, row, column,
+        Widget.__init__(self, parent, title, row, column,
                                        row_span, column_span, padx,
-                                       pady, logger, selectable=True)
+                                       pady, selectable=True)
 
         self._title_enabled = True
         self._border_enabled = True
@@ -274,5 +273,3 @@ class SliderWidget(py_cui.widgets.Widget, SliderImplementation):
             self.update_slider_value(1)
 
 
-class SliderPopup(py_cui.popups.Popup, SliderImplementation):
-    pass
