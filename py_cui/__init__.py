@@ -152,7 +152,7 @@ class PyCUI:
             'DOWN_RIGHT'    : '+',
             'HORIZONTAL'    : '-',
             'VERTICAL'      : '|',
-            'SCROLLBAR'     : '*',
+            'SCROLLBAR'     : '=',
         }
         self._stdscr                = None
         self._root                  = self.create_new_widget_set(num_rows, num_cols)
@@ -356,9 +356,9 @@ class PyCUI:
         """
 
         if self._border_characters is None or self._border_characters['UP_LEFT'] == '+':
-            self.set_widget_border_characters('\u256d', '\u256e', '\u2570', '\u256f', '\u2500', '\u2502', '*')
+            self.set_widget_border_characters('\u256d', '\u256e', '\u2570', '\u256f', '\u2500', '\u2502', '=')
         else:
-            self.set_widget_border_characters('+', '+', '+', '+', '-', '|', '*')
+            self.set_widget_border_characters('+', '+', '+', '+', '-', '|', '=')
 
 
     def set_widget_border_characters(self, upper_left_corner, upper_right_corner, lower_left_corner, lower_right_corner, horizontal, vertical, scroll):

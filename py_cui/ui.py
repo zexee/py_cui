@@ -102,7 +102,7 @@ class UIElement:
 
     def get_viewport_width(self):
       startx, _ = self.get_viewport_start_pos()
-      stopx, _ = self.get_viewport_start_pos()
+      stopx, _ = self.get_viewport_stop_pos()
       return stopx - startx + 1
 
 

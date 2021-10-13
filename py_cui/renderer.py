@@ -71,6 +71,8 @@ class Renderer:
             return
         begin_ratio = float(begin - 1) / limit
         end_ratio = float(end) / limit
+        self.set_color_mode(ui_element.get_border_color())
+        if ui_element.is_hovering(): self._set_bold()
         for i in range(height):
             ratio0 = float(i) / height
             ratio1 = float(i + 1) / height
@@ -79,6 +81,8 @@ class Renderer:
                 begin_ratio <= ratio1 <= end_ratio):
                 self._gui._stdscr.addstr(start_y + i, stop_x,
                                          self._gui._border_characters['SCROLLBAR'])
+        if ui_element.is_hovering(): self._unset_bold()
+        self.unset_color_mode(ui_element.get_border_color())
 
 
     def draw_border(self, ui_element, with_title=True):
@@ -88,16 +92,12 @@ class Renderer:
         _, border_y_start = ui_element.get_widget_start_pos()
         _, border_y_stop = ui_element.get_widget_stop_pos()
 
-        self.set_color_mode(ui_element.get_border_color())
-
         self._draw_border_top(ui_element, border_y_start, with_title)
 
         for i in range(border_y_start + 1, border_y_stop):
             self._draw_blank_row(ui_element, i)
 
         self._draw_border_bottom(ui_element, border_y_stop)
-
-        self.unset_color_mode(ui_element.get_border_color())
 
         if ui_element.is_hovering():
             self._unset_bold()
@@ -109,6 +109,7 @@ class Renderer:
         _, width      = ui_element.get_absolute_dimensions()
         title         = ui_element.get_title()
 
+        self.set_color_mode(ui_element.get_border_color())
         if not with_title or (len(title) + 4 >= width - 2 * padx):
             render_text = '{}{}{}'.format(
                 self._gui._border_characters['UP_LEFT'],
@@ -123,6 +124,7 @@ class Renderer:
                 self._gui._border_characters['HORIZONTAL'] * (width - 6 - 2 * padx - len(title)),
                 self._gui._border_characters['UP_RIGHT'])
             self._gui._stdscr.addstr(y, start_x + padx, render_text)
+        self.unset_color_mode(ui_element.get_border_color())
 
 
     def _draw_border_bottom(self, ui_element, y):
@@ -131,6 +133,7 @@ class Renderer:
         _, width      = ui_element.get_absolute_dimensions()
         footer        = ui_element.get_footer()
 
+        self.set_color_mode(ui_element.get_border_color())
         if not footer or len(footer) + 4 >= width - padx * 2:
             render_text = '{}{}{}'.format(
                 self._gui._border_characters['DOWN_LEFT'],
@@ -144,19 +147,21 @@ class Renderer:
                 self._gui._border_characters['HORIZONTAL'] * 2,
                 self._gui._border_characters['DOWN_RIGHT'])
         self._gui._stdscr.addstr(y, start_x + padx, render_text)
+        self.unset_color_mode(ui_element.get_border_color())
 
 
     def _draw_blank_row(self, ui_element, y):
-        padx, _       = ui_element.get_padding()
-        start_x, _    = ui_element.get_start_position()
-        _, width      = ui_element.get_absolute_dimensions()
+        start_x, _ = ui_element.get_widget_start_pos()
+        stop_x, _ = ui_element.get_widget_stop_pos()
+        viewport_start_x, _ = ui_element.get_viewport_start_pos()
+        width = ui_element.get_viewport_width()
 
-        render_text = '{}{}{}'.format(
-            self._gui._border_characters['VERTICAL'],
-            ' ' * (width - 2 - 2 * padx),
-            self._gui._border_characters['VERTICAL'])
+        self.set_color_mode(ui_element.get_border_color())
+        self._gui._stdscr.addstr(y, start_x, self._gui._border_characters['VERTICAL'])
+        self._gui._stdscr.addstr(y, stop_x, self._gui._border_characters['VERTICAL'])
+        self.unset_color_mode(ui_element.get_border_color())
 
-        self._gui._stdscr.addstr(y, start_x + padx, render_text)
+        self._gui._stdscr.addstr(y, viewport_start_x, ' ' * width)
 
 
     def _get_render_text(self, ui_element, line, centered, bordered, selected, start_pos):
@@ -212,19 +217,14 @@ class Renderer:
 
         render_text = self._get_render_text(ui_element, line, centered, bordered, selected, start_pos)
         current_start_x = start_x
-        if selected:
-            self._set_bold()
-
-        self.set_color_mode(ui_element.get_border_color())
 
         if bordered:
+            if ui_element.is_hovering(): self._set_bold()
+            self.set_color_mode(ui_element.get_border_color())
             self._gui._stdscr.addstr(y, start_x, self._gui._border_characters['VERTICAL'])
             current_start_x += 2
-
-        self.unset_color_mode(ui_element.get_border_color())
-
-        if selected:
-            self._unset_bold()
+            self.unset_color_mode(ui_element.get_border_color())
+            if ui_element.is_hovering(): self._unset_bold()
 
         # Each text elem is a list with [text, color]
         for text_elem in render_text:
@@ -242,15 +242,9 @@ class Renderer:
 
             self.unset_color_mode(text_elem[1])
 
-        if selected:
-            self._set_bold()
-
-        self.set_color_mode(ui_element.get_border_color())
-
         if bordered:
+            if ui_element.is_hovering(): self._set_bold()
+            self.set_color_mode(ui_element.get_border_color())
             self._gui._stdscr.addstr(y, stop_x, self._gui._border_characters['VERTICAL'])
-
-        self.unset_color_mode(ui_element.get_border_color())
-
-        if selected:
-            self._unset_bold()
+            self.unset_color_mode(ui_element.get_border_color())
+            if ui_element.is_hovering(): self._unset_bold()
