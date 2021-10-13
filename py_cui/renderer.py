@@ -164,14 +164,8 @@ class Renderer:
         self._gui._stdscr.addstr(y, viewport_start_x, ' ' * width)
 
 
-    def _get_render_text(self, ui_element, line, centered, bordered, selected, start_pos):
-        padx, _       = ui_element.get_padding()
-        _, width      = ui_element.get_absolute_dimensions()
-
-        render_text_length = width - (2 * padx)
-
-        if bordered:
-            render_text_length = render_text_length - 4
+    def _get_render_text(self, ui_element, line, centered, selected, start_pos):
+        render_text_length = ui_element.get_viewport_width() - 2
 
         if len(line) - start_pos < render_text_length:
             if centered:
@@ -213,7 +207,7 @@ class Renderer:
         if y > viewport_stop_y:
             return
 
-        render_text = self._get_render_text(ui_element, line, centered, bordered, selected, start_pos)
+        render_text = self._get_render_text(ui_element, line, centered, selected, start_pos)
         current_start_x = start_x
 
         if bordered:

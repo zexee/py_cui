@@ -316,15 +316,16 @@ class ScrollMenu(Widget, MenuImplementation):
         self._parent._renderer.set_color_mode(self._color)
         self._parent._renderer.draw_border(self)
 
-        posy = self._pady + 1
+        _, posy = self.get_viewport_start_pos()
+        _, stop_y = self.get_viewport_stop_pos()
         self._bottom_view = self._top_view
         self._logger.info("menu {} {}".format(self._height, self._pady))
         for itemi in range(self._top_view, len(self._view_items)):
             posy += self._parent._renderer.draw_text(self, str(self._view_items[itemi]),
-                self._start_y + posy, selected=itemi == self._selected_item)
-            if posy <= self._height - self._pady - 1:
+                posy, selected=itemi == self._selected_item)
+            if posy <= stop_y + 1:
               self._bottom_view = itemi
-            if posy >= self._height - self._pady - 1:
+            if posy >= stop_y + 1:
                 break
         self._parent._renderer.draw_scrollbar(self, self._top_view + 1, self._bottom_view + 1, len(self._view_items))
         self._parent._renderer.unset_color_mode(self._color)
