@@ -66,14 +66,12 @@ def fit_text(width, text, center=False):
     if width < 5:
         return '.' * width
     if len(text) >= width:
-        return text[:width - 5] + '...'
+        return text[:width - 4] + '...'
     else:
-        total_num_spaces = (width - len(text) - 1)
+        total_num_spaces = width - len(text) - 1
         if center:
             left_spaces = int(total_num_spaces / 2)
-            right_spaces = int(total_num_spaces / 2)
-            if(total_num_spaces % 2 == 1):
-                right_spaces = right_spaces + 1
+            right_spaces = total_num_spaces - left_spaces
             return ' ' * left_spaces + text + ' ' * right_spaces
         else:
             return text + ' ' * total_num_spaces
@@ -712,7 +710,7 @@ class PyCUI:
     def _draw_status_bars(self, stdscr, height, width):
         if self.status_bar is not None:
             stdscr.attron(curses.color_pair(self.status_bar.get_color()))
-            stdscr.addstr(height - 1, 0, fit_text(width, self.status_bar.get_text()))
+            stdscr.addstr(height - 1, 0, fit_text(width, self.status_bar.get_text(), center=True))
             stdscr.attroff(curses.color_pair(self.status_bar.get_color()))
 
         if self.title_bar is not None:
@@ -837,7 +835,11 @@ class PyCUI:
                 # Here we handle mouse click events globally, or pass them to the UI element to handle
                 elif key_pressed == curses.KEY_MOUSE:
                     self._logger.info('Detected mouse click')
-                    _, x, y, _, _ = curses.getmouse()
+                    try:
+                      _, x, y, _, _ = curses.getmouse()
+                    except:
+                      # getmouse error
+                      continue
                     in_element = self.get_element_at_position(x, y)
 
                     # In first case, we click inside already selected widget, pass click for processing

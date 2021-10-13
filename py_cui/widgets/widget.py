@@ -123,19 +123,27 @@ class Widget(py_cui.ui.UIElement):
         offset_x, offset_y      = self._grid.get_offsets()
         row_height, col_width   = self._grid.get_cell_dimensions()
 
-        x_pos = self._column * col_width + offset_x
-        # Always add two to the y_pos, because we have a title bar + a pad row
-        y_pos = self._row * row_height + offset_y + self._parent._gui._top_padding + 1
+        x_pos = self._column * col_width + self._parent._gui._left_padding + (offset_x if self._column != 0 else 0)
+        y_pos = self._row * row_height + self._parent._gui._top_padding + 1 + (offset_y if self._row != 0 else 0)
         return x_pos, y_pos
 
 
     def get_absolute_stop_pos(self):
         """Gets the absolute dimensions of the widget in characters. Override of base class function
         """
-
-        start_x, start_y = self.get_absolute_start_pos()
+        offset_x, offset_y      = self._grid.get_offsets()
         row_height, col_width   = self._grid.get_cell_dimensions()
-        return start_x + col_width * self._column_span - 1, start_y + row_height * self._row_span - 1
+
+        if self._column + self._column_span == self._grid._num_columns:
+          x_pos = self._grid._width + self._parent._gui._left_padding - 1
+        else:
+          x_pos = self._column * col_width + offset_x + self._parent._gui._left_padding + col_width * self._column_span - 1
+
+        if self._row + self._row_span == self._grid._num_rows:
+          y_pos = self._grid._height + self._parent._gui._top_padding
+        else:
+          y_pos = self._row * row_height + offset_y + self._parent._gui._top_padding + row_height * self._row_span
+        return x_pos, y_pos
 
 
     def get_grid_cell(self):
