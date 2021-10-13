@@ -78,10 +78,10 @@ class UIElement:
 
 
     def get_widget_stop_pos(self):
-        return (self._stop_x - self._padx - 1,
+        return (self._stop_x - self._padx,
                 self._start_y + int(self._height / 2) + 1
                     if self._single_line_mode
-                    else self._stop_y - self._pady - 1)
+                    else self._stop_y - self._pady)
 
 
     def get_viewport_start_pos(self):

@@ -707,7 +707,7 @@ class PyCUI:
     def _draw_status_bars(self, stdscr, height, width):
         if self.status_bar is not None:
             stdscr.attron(curses.color_pair(self.status_bar.get_color()))
-            stdscr.addstr(height + 3, 0, fit_text(width, self.status_bar.get_text()))
+            stdscr.addstr(height - 1, 0, fit_text(width, self.status_bar.get_text()))
             stdscr.attroff(curses.color_pair(self.status_bar.get_color()))
 
         if self.title_bar is not None:
@@ -812,8 +812,6 @@ class PyCUI:
                 else:
                     height = self._simulated_terminal[0]
                     width  = self._simulated_terminal[1]
-
-                height -= 4
 
                 # If the user defined an update function to fire on each draw call,
                 # Run it here. This can of course be also handled user-side
