@@ -1,6 +1,6 @@
 This is a Python TUI framework forked from jwlodek/py_cui, but much is changed.
 
-Checkout example/all_in_one.py for example.
+Checkout example/all_in_one.py for usage example. Other examples and unit tests are not maintained.
 
 TODO:
 ----
