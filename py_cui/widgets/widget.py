@@ -15,39 +15,30 @@ class Widget(py_cui.ui.UIElement):
     ----------
     _grid : py_cui.grid.Grid
         The parent grid object of the widget
-    _row, _column : int
-        row and column position of the widget
-    _row_span, _column_span : int
-        number of rows or columns spanned by the widget
-    _selectable : bool
-        Flag that says if a widget can be selected
     _key_commands : dict
         Dictionary mapping key codes to functions
     _text_color_rules : List[py_cui.ColorRule]
         color rules to load into renderer when drawing widget
     """
 
-    def __init__(self, parent, title, row, column, row_span, column_span, padx, pady, selectable = True):
+    def __init__(self, parent, title, row, column, row_span, column_span):
         """Initializer for base widget class
 
         Calss UIElement superclass initialzier, and then assigns widget to grid, along with row/column info
         and color rules and key commands
         """
 
-        super().__init__(parent.get_next_id(), title, None, parent._logger)
+        super().__init__(parent.get_next_id(), title, row, column, row_span, column_span,
+                         parent._renderer, parent._logger)
         self._grid = parent._grid
         self._parent = parent
         grid_rows, grid_cols = self._grid.get_dimensions()
         if (grid_cols < column + column_span) or (grid_rows < row + row_span):
             raise py_cui.errors.PyCUIOutOfBoundsError("Target grid too small for widget {}".format(title))
 
-        self._row          = row
-        self._column       = column
-        self._row_span     = row_span
-        self._column_span  = column_span
-        self._padx         = padx
-        self._pady         = pady
-        self._selectable       = selectable
+        self._events = {
+        }
+
         self._key_commands     = {}
         self._text_color_rules = []
         self._default_color = py_cui.WHITE_ON_BLACK
@@ -123,8 +114,12 @@ class Widget(py_cui.ui.UIElement):
         offset_x, offset_y      = self._grid.get_offsets()
         row_height, col_width   = self._grid.get_cell_dimensions()
 
-        x_pos = self._column * col_width + self._parent._gui._left_padding + (offset_x if self._column != 0 else 0)
-        y_pos = self._row * row_height + self._parent._gui._top_padding + 1 + (offset_y if self._row != 0 else 0)
+        if self._column == 0 and self._style['snap_border']:
+          offset_x = 0
+        if self._row == 0 and self._style['snap_border']:
+          offset_y = 0
+        x_pos = self._column * col_width + self._parent._gui._left_padding + offset_x
+        y_pos = self._row * row_height + self._parent._gui._top_padding + 1 + offset_y
         return x_pos, y_pos
 
 
@@ -134,12 +129,12 @@ class Widget(py_cui.ui.UIElement):
         offset_x, offset_y      = self._grid.get_offsets()
         row_height, col_width   = self._grid.get_cell_dimensions()
 
-        if self._column + self._column_span == self._grid._num_columns:
+        if self._column + self._column_span == self._grid._num_columns and self._style['snap_border']:
           x_pos = self._grid._width + self._parent._gui._left_padding - 1
         else:
           x_pos = self._column * col_width + offset_x + self._parent._gui._left_padding + col_width * self._column_span - 1
 
-        if self._row + self._row_span == self._grid._num_rows:
+        if self._row + self._row_span == self._grid._num_rows and self._style['snap_border']:
           y_pos = self._grid._height + self._parent._gui._top_padding
         else:
           y_pos = self._row * row_height + offset_y + self._parent._gui._top_padding + row_height * self._row_span
@@ -168,30 +163,6 @@ class Widget(py_cui.ui.UIElement):
         """
 
         return self._row_span, self._column_span
-
-
-    def set_selectable(self, selectable):
-        """Setter for widget selectablility
-
-        Paramters
-        ---------
-        selectable : bool
-            Widget selectable if true, otherwise not
-        """
-
-        self._selectable = selectable
-
-
-    def is_selectable(self):
-        """Checks if the widget is selectable
-
-        Returns
-        -------
-        selectable : bool
-            True if selectable, false otherwise
-        """
-
-        return self._selectable
 
 
     def _is_row_col_inside(self, row, col):
@@ -245,15 +216,8 @@ class Widget(py_cui.ui.UIElement):
 
 
     def _draw(self):
-        """Base class draw class that checks if renderer is valid.
-
-        Should be called with super()._draw() in overrides.
-        Also intializes color rules, so if not called color rules will not be applied
-        """
-
-        if self._renderer is None:
-            return
-        else:
-            self._renderer.set_color_rules(self._text_color_rules)
+      # TODO: this should belong to specific widget, not universal.
+      self._renderer.set_color_rules(self._text_color_rules)
+      super()._draw()
 
 

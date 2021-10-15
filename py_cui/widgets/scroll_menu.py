@@ -252,11 +252,11 @@ class ScrollMenu(Widget, MenuImplementation):
     """A scroll menu widget.
     """
 
-    def __init__(self, parent, title, row, column, row_span=1, column_span=1, padx=0, pady=0):
+    def __init__(self, parent, title, row, column, row_span=1, column_span=1):
         """Initializer for scroll menu. calls superclass initializers and sets help text
         """
 
-        Widget.__init__(self, parent, title, row, column, row_span, column_span, padx, pady)
+        Widget.__init__(self, parent, title, row, column, row_span, column_span)
         MenuImplementation.__init__(self, parent._logger)
         self._parent = parent
         self.set_help_text('Focus mode on ScrollMenu. Use Up/Down/PgUp/PgDown/Home/End to scroll, Esc to exit.')
@@ -272,7 +272,7 @@ class ScrollMenu(Widget, MenuImplementation):
         """
 
         super()._handle_mouse_press(x, y)
-        viewport_top = self._start_y + self._pady + 1
+        _, viewport_top = self.get_viewport_start_pos()
         if viewport_top <= y and viewport_top + len(self._view_items) - self._top_view >= y:
             elem_clicked = y - viewport_top + self._top_view
             self.set_selected_item_index(elem_clicked)
@@ -308,27 +308,24 @@ class ScrollMenu(Widget, MenuImplementation):
         self._set_footer()
 
 
-    def _draw(self):
-        """Overrides base class draw function
-        """
-
-        super()._draw()
-        self._parent._renderer.set_color_mode(self._color)
-        self._parent._renderer.draw_border(self)
-
-        _, posy = self.get_viewport_start_pos()
-        _, stop_y = self.get_viewport_stop_pos()
+    def _draw_content(self):
+        start_x, posy = self.get_viewport_start_pos()
+        stop_x, stop_y = self.get_viewport_stop_pos()
         self._bottom_view = self._top_view
-        self._logger.info("menu {} {}".format(self._height, self._pady))
         for itemi in range(self._top_view, len(self._view_items)):
-            posy += self._parent._renderer.draw_text(self, str(self._view_items[itemi]),
-                posy, selected=itemi == self._selected_item)
+            posy += self._parent._renderer.draw_text_in(
+                self, str(self._view_items[itemi]),
+                start_x, stop_x,
+                posy, stop_y,
+                selected=itemi == self._selected_item)
             if posy <= stop_y + 1:
               self._bottom_view = itemi
             if posy >= stop_y + 1:
                 break
-        self._parent._renderer.draw_scrollbar(self, self._top_view + 1, self._bottom_view + 1, len(self._view_items))
-        self._parent._renderer.unset_color_mode(self._color)
-        self._parent._renderer.reset_cursor(self)
+
+
+    def _draw_scrollbar(self):
+      self._parent._renderer.draw_scrollbar(self, self._top_view + 1, self._bottom_view + 1, len(self._view_items))
+
 
 

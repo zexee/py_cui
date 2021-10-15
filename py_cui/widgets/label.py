@@ -12,34 +12,22 @@ class Label(Widget):
         Toggle for drawing label border
     """
 
-    def __init__(self, parent, title, row, column, row_span=1, column_span=1, padx=0, pady=0):
+    def __init__(self, parent, title, row, column, row_span=1, column_span=1):
         """Initalizer for Label widget
         """
 
-        super().__init__(parent, title, row, column, row_span, column_span, padx, pady, selectable=False)
-        self._draw_border = False
+        super().__init__(parent, title, row, column, row_span, column_span)
+        self._style['selectable'] = False
+        self._style['alignment'] = 'center'
+        self._style['vertical_alignment'] = 'middle'
+        self._style['draw_border'] = False
+        self._style['single_line_mode'] = True
         self._parent = parent
 
 
-    def toggle_border(self):
-        """Function that gives option to draw border around label
-        """
-
-        self._draw_border = not self._draw_border
+    def _draw_content(self):
+      self._parent._renderer.draw_text_in_viewport(self, self._title)
 
 
-    def _draw(self):
-        """Override base draw class.
-
-        Center text and draw it
-        """
-
-        super()._draw()
-        self._parent._renderer.set_color_mode(self._color)
-        if self._draw_border:
-            self._parent._renderer.draw_border(self, with_title=False)
-        target_y = self._start_y + int(self._height / 2)
-        self._parent._renderer.draw_text(self, self._title, target_y, centered=True, bordered=self._draw_border)
-        self._parent._renderer.unset_color_mode(self._color)
 
 

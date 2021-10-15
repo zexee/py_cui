@@ -205,7 +205,7 @@ class WidgetSet:
 
     def add_widget(self, widget):
         self._widgets[widget._id] = widget
-        if self._selected_widget is None and widget._selectable:
+        if self._selected_widget is None and widget._style['selectable']:
             self.set_selected_widget(widget._id)
         self._gui._logger.info('Adding widget {} w/ ID {} of type {}'.format(widget._title, widget._id, str(type(widget))))
         return widget

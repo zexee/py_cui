@@ -11,7 +11,7 @@ if __name__ == '__main__':
   gui.set_title("All-in-one Demo")
 
   root = gui.get_root()
-  root.add_widget(py_cui.widgets.BlockLabel(root, '    col\nrow', 0, 0, 1, 1))
+  root.add_widget(py_cui.widgets.BlockLabel(root, '   col\nrow   ', 0, 0, 1, 1))
 
   root.add_widget(py_cui.widgets.Label(root, 'row1', 1, 0))
   root.add_widget(py_cui.widgets.Label(root, 'row2', 2, 0))
@@ -36,11 +36,11 @@ if __name__ == '__main__':
   menu = root.add_widget(py_cui.widgets.ScrollMenu(root, 'Menu Demo', 1, 1, 6, 3))
 
   menu.add_item_list(['item {}'.format(i) for i in range(26)])
-  root.add_widget(py_cui.widgets.Button(root, "Add Item", 7, 1, 1, 3, 0, 0,
+  root.add_widget(py_cui.widgets.Button(root, "Add Item", 7, 1, 1, 3,
       command=lambda : menu.add_item('item {}'.format(menu.get_item_size()))))
-  root.add_widget(py_cui.widgets.Button(root, "Remove Item", 8, 1, 1, 3, 0, 0,
+  root.add_widget(py_cui.widgets.Button(root, "Remove Item", 8, 1, 1, 3,
       command=lambda : menu.remove_selected_item()))
-  root.add_widget(py_cui.widgets.Button(root, "Clear Items", 9, 1, 1, 3, 0, 0,
+  root.add_widget(py_cui.widgets.Button(root, "Clear Items", 9, 1, 1, 3,
       command=lambda : menu.clear_items()))
 
   text1 = root.add_widget(py_cui.widgets.TextBox(root, "TextBox Demo", 1, 4, 1, 3))
@@ -52,7 +52,7 @@ if __name__ == '__main__':
 
   check = root.add_widget(py_cui.widgets.CheckBoxMenu(root, "CheckBoxMenu Demo", 8, 4, 2, 3))
   check.add_item('UTF8 Rendering')
-  check._on_change = lambda: gui.set_unicode_borders() if check.is_checked('UTF8 Rendering') else gui.set_ansi_borders()
+  check._events['on_change'] = lambda: gui.set_unicode_borders() if check.is_checked('UTF8 Rendering') else gui.set_ansi_borders()
 
   slider = root.add_widget(py_cui.widgets.Slider(root, "Slider Demo", 1, 7, 1, 3))
 

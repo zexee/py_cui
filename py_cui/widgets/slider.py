@@ -105,19 +105,18 @@ class Slider(Widget, SliderImplementation):
     """
 
     def __init__(self, parent, title, row, column, row_span, column_span,
-                 padx=0, pady=0, min_val=0, max_val=100, step=1, init_val=50):
+                 min_val=0, max_val=100, step=1, init_val=50):
 
         SliderImplementation.__init__(self, min_val, max_val, init_val, step, parent._logger)
 
         Widget.__init__(self, parent, title, row, column,
-                                       row_span, column_span, padx,
-                                       pady, selectable=True)
+                                       row_span, column_span)
 
         self._parent = parent
-        self._title_enabled = True
-        self._border_enabled = True
         self._display_value = True
-        self._alignment = "mid"
+        self._style['draw_border'] = True
+        self._style['single_line_mode'] = True
+        self._style['vertical_alignment'] = 'top'
         self.set_help_text("Focus mode on Slider. Use left/right to adjust value. Esc to exit.")
 
 
@@ -140,58 +139,6 @@ class Slider(Widget, SliderImplementation):
         """
 
         self._display_value = not self._display_value
-
-
-    def align_to_top(self):
-        """Aligns widget height to top.
-        """
-        self._alignment = "top"
-
-
-    def align_to_middle(self):
-        """Aligns widget height to middle. default configuration.
-        """
-        self._alignment = "mid"
-
-
-    def align_to_bottom(self):
-        """Aligns widget height to bottom.
-        """
-        self._alignment = "btm"
-
-
-    def _custom_draw_with_border(self, start_y: int, content: str):
-        """
-        Custom method made from renderer.draw_border to support alignment for bordered variants.
-
-        Parameters
-        ----------
-        start_y : int
-            border's Y-axis starting coordination
-        content: str
-            string to be drawn inside the border
-        """
-
-        # having closer reference allow faster access. More dot access means more scopes to search for.
-        ui_element = self
-
-        self._parent._renderer.set_color_mode(ui_element.get_border_color())
-
-        if ui_element.is_focused():
-            self._parent._renderer._set_bold()
-            self._parent._renderer._draw_border_top(ui_element, start_y, False)
-
-            self._parent._renderer.draw_text(ui_element, content, start_y + 1, selected=True, bordered=True)
-            self._parent._renderer._set_bold()
-
-            self._parent._renderer._draw_border_bottom(ui_element, start_y + 2)
-            self._parent._renderer._unset_bold()
-        else:
-            self._parent._renderer._draw_border_top(ui_element, start_y, False)
-            self._parent._renderer.draw_text(ui_element, content, start_y + 1, selected=False, bordered=True)
-            self._parent._renderer._draw_border_bottom(ui_element, start_y + 2)
-
-        self._parent._renderer.unset_color_mode(ui_element.get_border_color())
 
 
     def _generate_bar(self, width: int) -> str:
@@ -222,39 +169,10 @@ class Slider(Widget, SliderImplementation):
         return progress
 
 
-    def _draw(self):
-        """Override of base class draw function.
-        """
-
-        super()._draw()
-        self._parent._renderer.set_color_mode(self._color)
-
-        height, width = self.get_absolute_dimensions()
-        visual_height = (2 if self._border_enabled else 0) + (1 if self._title_enabled else 0)
-
-        if self._alignment == "top":
-            text_y_pos = self._start_y
-        elif self._alignment == "mid":
-            text_y_pos = self._start_y + ((height - visual_height) // 2)
-        else:
-            text_y_pos = self._start_y + height - visual_height - 1
-
-        if self._title_enabled:
-            self._parent._renderer.draw_text(
-                self, self.get_title(), text_y_pos, selected=self.is_focused(), bordered=False
-            )
-            text_y_pos += 1
-
-        if self._border_enabled:
-            width -= 6
-            self._custom_draw_with_border(text_y_pos, self._generate_bar(width))
-        else:
-            width -= 2
-            self._parent._renderer.draw_text(
-                self, self._generate_bar(width), text_y_pos, selected=self.is_focused(), bordered=False
-            )
-
-        self._parent._renderer.unset_color_mode(self._color)
+    def _draw_content(self):
+        width = self.get_viewport_width()
+        self._parent._renderer.draw_text_in_viewport(
+            self, self._generate_bar(width), selected=self.is_focused())
 
 
     def _handle_key_press(self, key_pressed):

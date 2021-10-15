@@ -51,6 +51,8 @@ class Renderer:
 
 
     def reset_cursor(self, ui_element):
+        self._gui.hide_cursor()
+        return
         cursor_x, cursor_y = ui_element.get_widget_start_pos()
         try:
             self._gui._stdscr.move(cursor_y, cursor_x)
@@ -59,6 +61,7 @@ class Renderer:
 
 
     def draw_cursor(self, cursor_y, cursor_x):
+        self._gui.show_cursor()
         self._gui._stdscr.move(cursor_y, cursor_x)
 
 
@@ -85,14 +88,14 @@ class Renderer:
         self.unset_color_mode(ui_element.get_border_color())
 
 
-    def draw_border(self, ui_element, with_title=True):
+    def draw_border(self, ui_element):
         if ui_element.is_hovering():
             self._set_bold()
 
         _, border_y_start = ui_element.get_widget_start_pos()
         _, border_y_stop = ui_element.get_widget_stop_pos()
 
-        self._draw_border_top(ui_element, border_y_start, with_title)
+        self._draw_border_top(ui_element, border_y_start)
 
         for i in range(border_y_start + 1, border_y_stop):
             self._draw_blank_row(ui_element, i)
@@ -103,14 +106,14 @@ class Renderer:
             self._unset_bold()
 
 
-    def _draw_border_top(self, ui_element, y, with_title):
+    def _draw_border_top(self, ui_element, y):
         start_x, _ = ui_element.get_widget_start_pos()
         stop_x, _ = ui_element.get_widget_stop_pos()
         width = stop_x - start_x + 1
         title = ui_element.get_title()
 
         self.set_color_mode(ui_element.get_border_color())
-        if not with_title or (len(title) + 4 > width):
+        if not ui_element._style['draw_title'] or not title or len(title) + 4 > width:
             render_text = '{}{}{}'.format(
                 self._gui._border_characters['UP_LEFT'],
                 self._gui._border_characters['HORIZONTAL'] * (width - 2),
@@ -134,7 +137,7 @@ class Renderer:
         footer = ui_element.get_footer()
 
         self.set_color_mode(ui_element.get_border_color())
-        if not footer or len(footer) + 4 > width:
+        if not ui_element._style['draw_footer'] or not footer or len(footer) + 4 > width:
             render_text = '{}{}{}'.format(
                 self._gui._border_characters['DOWN_LEFT'],
                 self._gui._border_characters['HORIZONTAL'] * (width - 2),
@@ -189,6 +192,68 @@ class Renderer:
                 return fragments
 
         return fragments
+
+
+    def draw_text_in_viewport(self, ui_element, multi_lines, selected=False, start_pos=0):
+      start_x, start_y = ui_element.get_viewport_start_pos()
+      stop_x, stop_y = ui_element.get_viewport_stop_pos()
+      if ui_element._style['vertical_alignment'] == 'top':
+        return self.draw_text_in(ui_element, multi_lines, start_x, stop_x, start_y, stop_y, selected, start_pos)
+
+      count = len(multi_lines.splitlines())
+      height = ui_element.get_viewport_height()
+      if ui_element._style['vertical_alignment'] == 'middle':
+        return self.draw_text_in(ui_element, multi_lines, start_x, stop_x,
+            start_y + (height - count) // 2, stop_y, selected, start_pos)
+      elif ui_element._style['vertical_alignment'] == 'bottom':
+        if count > height: count = height
+        return self.draw_text_in(ui_element, multi_lines, start_x, stop_x,
+            stop_y - count + 1, stop_y, selected, start_pos)
+
+
+    def draw_text_in(self, ui_element, multi_lines, start_x, stop_x, start_y, stop_y, selected=False, start_pos=0):
+      lines = multi_lines.splitlines()
+      y = start_y
+      i = 0
+      while y <= stop_y and i < len(lines):
+        self._draw_one_line_text_in(ui_element, lines[i], start_x, stop_x, y, selected, start_pos)
+        y += 1
+        i += 1
+      return i
+
+
+    def _get_render_text_in(self, ui_element, line, space, selected, start_pos):
+        render_text_length = space
+        if len(line) - start_pos < render_text_length:
+            render_text = ('{}'.format(line[start_pos:].center(render_text_length, ' '))
+                           if ui_element._style['alignment'] == 'center'
+                           else '{}{}'.format(line[start_pos:], ' ' * (render_text_length - len(line[start_pos:]))))
+        else:
+            render_text = line[start_pos:start_pos + render_text_length]
+        render_text_fragments = self._generate_text_color_fragments(ui_element, line, render_text, selected)
+        return render_text_fragments
+
+
+    def _draw_one_line_text_in(self, ui_element, line, start_x, stop_x, y, selected, start_pos):
+        space = stop_x - start_x + 1
+        render_text = self._get_render_text_in(ui_element, line, space, selected, start_pos)
+        current_start_x = start_x
+
+        # Each text elem is a list with [text, color]
+        for text_elem in render_text:
+            self.set_color_mode(text_elem[1])
+
+            # BLACK_ON_WHITE + BOLD is unreadable on windows terminals
+            if selected and text_elem[1] != py_cui.BLACK_ON_WHITE:
+                self._set_bold()
+
+            self._gui._stdscr.addstr(y, current_start_x, text_elem[0])
+            current_start_x += len(text_elem[0])
+
+            if selected and text_elem[1] != py_cui.BLACK_ON_WHITE:
+                self._unset_bold()
+
+            self.unset_color_mode(text_elem[1])
 
 
     def draw_text(self, ui_element, multi_lines, y, centered=False, bordered=True, selected=False, start_pos=0):

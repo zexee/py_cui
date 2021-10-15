@@ -24,12 +24,12 @@ class TextBoxImplementation(UIImplementation):
         Toggle to display password characters or text
     """
 
-    def __init__(self, initial_text, password, logger):
+    def __init__(self, password, logger):
         """Initializer for the TextBoxImplementation base class
         """
 
         super().__init__(logger)
-        self._text             = initial_text
+        self._text             = ''
         self._password         = password
         self._initial_cursor   = 0
         self._cursor_text_pos  = 0
@@ -211,13 +211,13 @@ class TextBox(Widget, TextBoxImplementation):
     """Widget for entering small single lines of text
     """
 
-    def __init__(self, parent, title, row, column, row_span, column_span, padx=0, pady=0, initial_text='', password=''):
+    def __init__(self, parent, title, row, column, row_span, column_span, password=''):
         """Initializer for TextBox widget. Uses TextBoxImplementation as base
         """
 
-        Widget.__init__(self, parent, title, row, column, row_span, column_span, padx, pady)
-        TextBoxImplementation.__init__(self, initial_text, password, parent._logger)
-        self._single_line_mode = True
+        Widget.__init__(self, parent, title, row, column, row_span, column_span)
+        TextBoxImplementation.__init__(self, password, parent._logger)
+        self._style['single_line_mode'] = True
         self._parent = parent
         self.update_height_width()
         self.set_help_text('Focus mode on TextBox. Press Esc to exit focus mode.')
@@ -228,16 +228,12 @@ class TextBox(Widget, TextBoxImplementation):
         """
 
         super().update_height_width()
-        padx, _             = self.get_padding()
-        start_x, start_y    = self.get_start_position()
-        height, width       = self.get_absolute_dimensions()
-        self._initial_cursor     = start_x + padx + 2
-        self._cursor_text_pos    = 0
-        self._cursor_x           = start_x + padx + 2
-        self._cursor_max_left    = start_x + padx + 2
-        self._cursor_max_right   = start_x + width - padx - 1
-        self._cursor_y           = start_y + int(height / 2)
-        self._viewport_width     = self._cursor_max_right - self._cursor_max_left
+        self._cursor_x, self._cursor_y = self.get_viewport_start_pos()
+        _, self._cursor_max_right = self.get_viewport_stop_pos()
+        self._cursor_max_left = self._cursor_x
+        self._initial_cursor = self._cursor_x
+        self._cursor_text_pos = 0
+        self._viewport_width = self.get_viewport_width()
 
 
     def _handle_mouse_press(self, x, y):
@@ -280,32 +276,24 @@ class TextBox(Widget, TextBoxImplementation):
             self._insert_char(key_pressed)
 
 
-    def _draw(self):
-        """Override of base draw function
-        """
+    def _draw_content(self):
+      render_text = self._text
+      if len(self._text) > self._viewport_width:
+        end = len(self._text) - self._viewport_width
+        if self._cursor_text_pos < end:
+          render_text = self._text[self._cursor_text_pos:self._cursor_text_pos + self._viewport_width]
+        else:
+          render_text = self._text[end:]
+      if self._password:
+        temp = '*' * len(render_text)
+        render_text = temp
+      self._parent._renderer.draw_text_in_viewport(self, render_text, selected=self._focused)
 
-        super()._draw()
 
-        self._parent._renderer.set_color_mode(self._color)
-        # self._parent._renderer.draw_text(self, self._title, self._cursor_y - 2, bordered=False)
-        self._parent._renderer.draw_border(self, with_title=True)
-        render_text = self._text
-        if len(self._text) > self._width - 2 * self._padx - 4:
-            end = len(self._text) - (self._width - 2 * self._padx - 4)
-            if self._cursor_text_pos < end:
-                render_text = self._text[self._cursor_text_pos:self._cursor_text_pos + (self._width - 2 * self._padx - 4)]
-            else:
-                render_text = self._text[end:]
-        if self._password:
-            temp = '*' * len(render_text)
-            render_text = temp
-
-        self._parent._logger.info('TEXT {}'.format(render_text))
-        self._parent._renderer.draw_text(self, render_text, self._cursor_y, selected=self._focused)
+    def _draw_cursor(self):
         if self._focused:
             self._parent._renderer.draw_cursor(self._cursor_y, self._cursor_x)
         else:
             self._parent._renderer.reset_cursor(self)
-        self._parent._renderer.unset_color_mode(self._color)
 
 

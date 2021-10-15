@@ -251,7 +251,7 @@ class PyCUI:
         """
 
         if isinstance(new_widget_set, py_cui.widget_set.WidgetSet):
-            self._root.lose_focus()
+            self.lose_focus()
             self._root = new_widget_set
 
             if self._simulated_terminal is None:
@@ -741,7 +741,7 @@ class PyCUI:
             selected_widget = self._root.get_selected_widget()
             if key_pressed == py_cui.keys.KEY_ESCAPE:
                 self.status_bar.set_text(self._init_status_bar_text)
-                self._root.lose_focus()
+                self.lose_focus()
                 self._logger.info('Exiting focus mode on widget {}'.format(selected_widget.get_title()))
             else:
                 # widget handles remaining py_cui.keys
@@ -752,7 +752,7 @@ class PyCUI:
         else:
             handled = False
             selected_widget = self._root.get_selected_widget()
-            if key_pressed == py_cui.keys.KEY_ENTER and self._root._selected_widget is not None and selected_widget.is_selectable():
+            if key_pressed == py_cui.keys.KEY_ENTER and self._root._selected_widget is not None and selected_widget._style['selectable']:
                 self.move_focus(selected_widget)
             else:
                 selected_widget = self._root.get_selected_widget()
@@ -908,4 +908,11 @@ class PyCUI:
             self._logger.info('Firing onstop function {}'.format(self._on_stop.__name__))
             self._on_stop()
 
+
+    def show_cursor(self):
+      curses.curs_set(2)
+
+
+    def hide_cursor(self):
+      curses.curs_set(0)
 

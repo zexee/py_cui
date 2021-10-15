@@ -13,11 +13,14 @@ class Button(Widget):
         A no-args function to run when the button is pressed.
     """
 
-    def __init__(self, parent, title, row, column, row_span, column_span, padx, pady, command):
+    def __init__(self, parent, title, row, column, row_span, column_span, command):
         """Initializer for Button Widget
         """
 
-        super().__init__(parent, title, row, column, row_span, column_span, padx, pady)
+        super().__init__(parent, title, row, column, row_span, column_span)
+        self._style['alignment'] = 'center'
+        self._style['vertical_alignment'] = 'middle'
+        self._style['snap_border'] = False
         self.command = command
         self._parent = parent
         self.set_color(py_cui.MAGENTA_ON_BLACK)
@@ -39,16 +42,8 @@ class Button(Widget):
                 return self.command()
 
 
-    def _draw(self):
-        """Override of base class draw function
-        """
+    def _draw_content(self):
+      return self._parent._renderer.draw_text_in_viewport(self, self._title, selected=self.is_hovering())
 
-        super()._draw()
-        self._parent._renderer.set_color_mode(self.get_color())
-        self._parent._renderer.draw_border(self, with_title=False)
-        button_text_y_pos = self._start_y + int(self._height / 2)
-        self._parent._renderer.draw_text(self, self._title, button_text_y_pos, centered=True, selected=self.is_hovering())
-        self._parent._renderer.reset_cursor(self)
-        self._parent._renderer.unset_color_mode(self.get_color())
 
 

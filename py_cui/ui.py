@@ -22,28 +22,46 @@ class UIElement:
     class contains all links to the CUI engine.
     """
 
-    def __init__(self, id, title, renderer, logger):
-        self._id                        = id
-        self._title                     = title
-        self._footer                    = ''
-        self._padx                      = 1
-        self._pady                      = 0
+    def __init__(self, id, title, row, column, row_span, column_span, renderer, logger):
+        self._id = id
+        self._title = title
+        self._footer = ''
+        self._help_text = ''
         self._start_x,  self._stop_y    = 0, 0
         self._stop_x,   self._start_y   = 0, 0
         self._height,   self._width     = 0, 0
         # Default UI Element color is white on black.
-        self._color                     = py_cui.WHITE_ON_BLACK
-        self._border_color              = self._color
-        self._hover_border_color        = self._color
-        self._focus_border_color        = py_cui.BLACK_ON_WHITE
-        self._selected_color            = self._color  # text color if focused
         self._mouse_press_handler       = None
         self._hovering                  = False
         self._focused                   = False
         self._renderer                  = renderer
         self._logger                    = logger
-        self._help_text                 = ''
-        self._single_line_mode          = False
+
+        self._row = row
+        self._column = column
+        self._row_span = row_span
+        self._column_span = column_span
+        # default attributes
+        self._style = {
+            'color': py_cui.WHITE_ON_BLACK,
+            'border_color': py_cui.WHITE_ON_BLACK,
+            'hover_border_color': py_cui.WHITE_ON_BLACK,
+            'focus_border_color': py_cui.BLACK_ON_WHITE,
+            'selected_color': py_cui.WHITE_ON_BLACK,
+            'margin_x': 0,
+            'margin_y': 0,
+            'padding_x': 1,
+            'padding_y': 0,
+            'border_width': 1,
+            'snap_border': True,
+            'alignment': 'left',
+            'vertical_alignment': 'top',
+            'selectable': True,
+            'draw_border': True,
+            'draw_title': True,
+            'draw_footer': True,
+            'single_line_mode': False,
+        }
 
 
     def set_single_line_mode(self):
@@ -71,27 +89,27 @@ class UIElement:
 
 
     def get_widget_start_pos(self):
-        return (self._start_x + self._padx,
+        return (self._start_x + self._style['margin_x'],
                 self._start_y + int(self._height / 2) - 1
-                    if self._single_line_mode
-                    else self._start_y + self._pady)
+                    if self._style['single_line_mode']
+                    else self._start_y + self._style['margin_y'])
 
 
     def get_widget_stop_pos(self):
-        return (self._stop_x - self._padx,
+        return (self._stop_x - self._style['margin_x'],
                 self._start_y + int(self._height / 2) + 1
-                    if self._single_line_mode
-                    else self._stop_y - self._pady)
+                    if self._style['single_line_mode']
+                    else self._stop_y - self._style['margin_y'])
 
 
     def get_viewport_start_pos(self):
         x, y = self.get_widget_start_pos()
-        return x + 1, y + 1
+        return x + self._style['border_width'] + self._style['padding_x'], y + self._style['border_width'] + self._style['padding_y']
 
 
     def get_viewport_stop_pos(self):
         x, y = self.get_widget_stop_pos()
-        return x - 1, y - 1
+        return x - self._style['border_width'] - self._style['padding_x'], y - self._style['border_width'] - self._style['padding_y']
 
 
     def update_height_width(self):
@@ -124,10 +142,6 @@ class UIElement:
         return self._footer
 
 
-    def get_padding(self):
-        return self._padx, self._pady
-
-
     def get_start_position(self):
         return self._start_x, self._start_y
 
@@ -137,20 +151,20 @@ class UIElement:
 
 
     def get_color(self):
-        return self._color
+        return self._style['color']
 
 
     def get_selected_color(self):
-        return self._selected_color
+        return self._style['selected_color']
 
 
     def get_border_color(self):
         if self._focused:
-            return self._focus_border_color
+            return self._style['focus_border_color']
         if self._hovering:
-            return self._hover_border_color
+            return self._style['hover_border_color']
         else:
-            return self._border_color
+            return self._style['border_color']
 
 
     def is_hovering(self):
@@ -162,85 +176,45 @@ class UIElement:
 
 
     def get_renderer(self):
-        """Gets reference to renderer object
-
-        Returns
-        -------
-        renderer : py_cui.renderer.Render
-            renderer object used for drawing element
-        """
-
         return self._renderer
 
 
     def get_help_text(self):
-        """Returns current help text
-
-        Returns
-        -------
-        help_text : str
-            Current element status bar help message
-        """
-
         return self._help_text
 
 
     def set_title(self, title):
-        """Function that sets the widget title.
-
-        Parameters
-        ----------
-        title : str
-            New widget title
-        """
-
         self._title = title
 
 
     def set_footer(self, footer):
-        """Function that sets the widget footer.
-
-        Parameters
-        ----------
-        footer : str
-            New widget footer
-        """
-
         self._footer = footer
 
 
     def set_color(self, color):
-        """Sets element default color
-
-        Parameters
-        ----------
-        color : int
-            New color pair key code
-        """
-
-        if self._border_color == self._color:
-            self._border_color = color
-        if self._focus_border_color == self._color:
-            self._focus_border_color = color
-        if self._hover_border_color == self._color:
-            self._hover_border_color = color
-        self._color = color
+        if self._style['border_color'] == self._style['color']:
+            self._style['border_color'] = color
+        if self._style['focus_border_color'] == self._style['color']:
+            self._style['focus_border_color'] = color
+        if self._style['hover_border_color'] == self._style['color']:
+            self._style['hover_border_color'] = color
+        self._style['color'] = color
 
 
     def set_border_color(self, color):
-        self._border_color = color
+        self._style['border_color'] = color
 
 
     def set_focus_border_color(self, color):
-        self._focus_border_color = color
+        self._style['focus_border_color'] = color
 
 
     def set_hovering_border_color(self, color):
-        self._hovering_border_color = color
+        self._style['hovering_border_color'] = color
 
 
     def set_selected_color(self, color):
-        self._selected_color = color
+        self._style['selected_color'] = color
 
 
     def set_hovering(self, hovering):
@@ -252,26 +226,10 @@ class UIElement:
 
 
     def set_help_text(self, help_text):
-        """Sets status bar help text
-
-        Parameters
-        ----------
-        help_text : str
-            New statusbar help text
-        """
-
         self._help_text = help_text
 
 
     def set_focus_text(self, focus_text):
-        """Sets status bar focus text. Legacy function, overridden by set_focus_text
-
-        Parameters
-        ----------
-        focus_text : str
-            New statusbar help text
-        """
-
         self._help_text = focus_text
 
 
@@ -307,55 +265,43 @@ class UIElement:
             self._mouse_press_handler(x, y)
 
 
-    def _draw(self):
-        """Must be implemented by subclasses. Uses renderer to draw element to terminal
+    def _draw_border(self):
+      self._renderer.draw_border(self)
+
+
+    def _draw_scrollbar(self):
+      # for multiline-overflow widget, need to override this if need cursor
+      pass
+
+
+    def _draw_cursor(self):
+      # for editing widget, need to override this if need cursor
+      self._parent._renderer.reset_cursor(self)
+
+
+    def _draw_content(self):
+        """Must be implemented by subclasses.
         """
 
         raise NotImplementedError
 
 
-    def _assign_renderer(self, renderer, quiet=False):
-        """Function that assigns a renderer object to the element
-
-        (Meant for internal usage only)
-
-        Parameters
-        ----------
-        renderer : py_cui.renderer.Renderer
-            Renderer for drawing element
-
-        Raises
-        ------
-        error : PyCUIError
-            If parameter is not an initialized renderer.
-        """
-
-        if renderer is None:
-            self._logger.debug('Renderer to assign is a NoneType')
-        elif self._renderer is not None:
-            raise py_cui.errors.PyCUIError('Renderer already assigned for the element')
-        elif isinstance(renderer, py_cui.renderer.Renderer):
-            self._renderer = renderer
+    def _draw(self):
+        self._renderer.set_color_mode(self._style['color'])
+        if self._style['draw_border']:
+          self._draw_border()
+        self._draw_content()
+        # _draw_scrollbar should be after _draw_content, since _draw_content need to count the displaying lines.
+        self._draw_scrollbar()
+        self._renderer.unset_color_mode(self._style['color'])
+        if self.is_focused():
+          self._draw_cursor()
         else:
-            raise py_cui.errors.PyCUIError('Invalid renderer, must be of type py_cui.renderer.Renderer')
+          x, y = self.get_widget_start_pos()
+          self._parent._renderer.draw_cursor(y, x)
 
 
     def _contains_position(self, x, y):
-        """Checks if character position is within element.
-
-        Parameters
-        ----------
-        x : int
-            X coordinate to check
-        y : int
-            Y coordinate to check
-
-        Returns
-        -------
-        contains : bool
-            True if (x,y) is within the element, false otherwise
-        """
-
         within_x = self._start_x <= x and self._start_x + self._width >= x
         within_y = self._start_y <= y and self._start_y + self._height >= y
         return within_x and within_y
