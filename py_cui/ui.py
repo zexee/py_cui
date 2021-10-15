@@ -57,11 +57,17 @@ class UIElement:
             'alignment': 'left',
             'vertical_alignment': 'top',
             'selectable': True,
-            'draw_border': True,
-            'draw_title': True,
-            'draw_footer': True,
+            'show_border': True,
+            'show_title': True,
+            'show_footer': True,
             'single_line_mode': False,
         }
+
+
+    def set_style(self, key, value):
+      # easy setting style
+      self._style[key] = value
+      return self
 
 
     def set_single_line_mode(self):
@@ -104,12 +110,14 @@ class UIElement:
 
     def get_viewport_start_pos(self):
         x, y = self.get_widget_start_pos()
-        return x + self._style['border_width'] + self._style['padding_x'], y + self._style['border_width'] + self._style['padding_y']
+        return (x + (self._style['border_width'] if self._style['show_border'] else 0) + self._style['padding_x'],
+                y + (self._style['border_width'] if self._style['show_border'] else 0) + self._style['padding_y'])
 
 
     def get_viewport_stop_pos(self):
         x, y = self.get_widget_stop_pos()
-        return x - self._style['border_width'] - self._style['padding_x'], y - self._style['border_width'] - self._style['padding_y']
+        return (x - (self._style['border_width'] if self._style['show_border'] else 0) - self._style['padding_x'],
+                y - (self._style['border_width'] if self._style['show_border'] else 0) - self._style['padding_y'])
 
 
     def update_height_width(self):
@@ -288,7 +296,7 @@ class UIElement:
 
     def _draw(self):
         self._renderer.set_color_mode(self._style['color'])
-        if self._style['draw_border']:
+        if self._style['show_border']:
           self._draw_border()
         self._draw_content()
         # _draw_scrollbar should be after _draw_content, since _draw_content need to count the displaying lines.

@@ -1,4 +1,3 @@
-from .block_label import *
 from .button import *
 from .checkbox_menu import *
 from .label import *

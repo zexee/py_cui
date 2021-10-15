@@ -21,6 +21,7 @@ class Button(Widget):
         self._style['alignment'] = 'center'
         self._style['vertical_alignment'] = 'middle'
         self._style['snap_border'] = False
+        self._style['draw_title'] = False
         self.command = command
         self._parent = parent
         self.set_color(py_cui.MAGENTA_ON_BLACK)
