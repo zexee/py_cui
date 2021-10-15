@@ -286,10 +286,6 @@ class PyCUI:
 
 
     def start(self):
-        """Function that starts the CUI
-        """
-
-        self._logger.info('Starting {} CUI'.format(self._title))
         curses.wrapper(self._draw)
 
 
