@@ -5,7 +5,8 @@ Checkout example/all_in_one.py for usage example. Other examples and unit tests 
 TODO:
 ----
 - use event-based callback
-- implement linear-layout (ScrollMenu is basically linear-layout with buttons)
+- implement scrollable-linear-layout
+- combined widget = outside controller + layout + inside widget (menu=linear-layout+label, blocktext=scrollable-layout+lineedit)
 
 DONE:
 ----
