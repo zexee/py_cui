@@ -20,7 +20,6 @@ class Button(Widget):
         super().__init__(parent, title)
         self._style['alignment'] = 'center'
         self._style['vertical_alignment'] = 'middle'
-        self._style['snap_border'] = False
         self._style['show_title'] = False
         self.command = command
         self._parent = parent

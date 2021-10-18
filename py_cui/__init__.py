@@ -347,7 +347,7 @@ class PyCUI:
     # identify neighbors for overview mode
 
     def move_focus(self, widget, auto_press_buttons=True):
-        self._root.move_focus(widget)
+        self._root.set_focus(widget._id)
         if self._auto_focus_buttons and auto_press_buttons and isinstance(widget, py_cui.widgets.Button):
             if widget.command is not None:
                 widget.command()
