@@ -12,8 +12,8 @@ class Label(Widget):
         Decides whether or not label should be centered
     """
 
-    def __init__(self, parent, title, row, column, row_span=1, column_span=1):
-      super().__init__(parent, title, row, column, row_span, column_span)
+    def __init__(self, parent, title):
+      super().__init__(parent, title)
       self._parent = parent
       self._style['show_border']  = False
       self._style['selectable'] = False

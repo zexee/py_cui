@@ -13,11 +13,11 @@ class Button(Widget):
         A no-args function to run when the button is pressed.
     """
 
-    def __init__(self, parent, title, row, column, row_span, column_span, command):
+    def __init__(self, parent, title, command):
         """Initializer for Button Widget
         """
 
-        super().__init__(parent, title, row, column, row_span, column_span)
+        super().__init__(parent, title)
         self._style['alignment'] = 'center'
         self._style['vertical_alignment'] = 'middle'
         self._style['snap_border'] = False

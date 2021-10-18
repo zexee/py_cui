@@ -1,46 +1,26 @@
-"""Module containing classes for generic UI elements.
-
-Contains base UI element class, along with UI implementation agnostic UI element classes.
-"""
-
-# Author:    Jakub Wlodek
-# Created:   19-Mar-2020
-
-
 import py_cui
 import py_cui.errors
 import py_cui.colors
 
 
 class UIElement:
-    """Base class for all UI elements. Extended by base widget and popup classes.
-
-    Interfaces between UIImplementation subclasses and CUI engine. For example,
-    a widget is a subclass of a UIElement. Then a TextBox widget would be a subclass
-    of the base widget class, and the TextBoxImplementation. The TextBoxImplementation
-    superclass contains logic for all textbox required operations, while the widget base
-    class contains all links to the CUI engine.
-    """
-
-    def __init__(self, id, title, row, column, row_span, column_span, renderer, logger):
+    def __init__(self, id, title, renderer, logger):
         self._id = id
+        self._start_x, self._stop_y = 0, 0
+        self._stop_x, self._start_y = 0, 0
+
         self._title = title
         self._footer = ''
         self._help_text = ''
-        self._start_x,  self._stop_y    = 0, 0
-        self._stop_x,   self._start_y   = 0, 0
-        self._height,   self._width     = 0, 0
-        # Default UI Element color is white on black.
-        self._mouse_press_handler       = None
-        self._hovering                  = False
-        self._focused                   = False
-        self._renderer                  = renderer
-        self._logger                    = logger
 
-        self._row = row
-        self._column = column
-        self._row_span = row_span
-        self._column_span = column_span
+        self._height, self._width = 0, 0
+        # Default UI Element color is white on black.
+        self._mouse_press_handler = None
+        self._hovering = False
+        self._focused = False
+        self._renderer = renderer
+        self._logger = logger
+
         # default attributes
         self._style = {
             'color': py_cui.WHITE_ON_BLACK,
@@ -70,28 +50,16 @@ class UIElement:
       return self
 
 
-    def set_single_line_mode(self):
-        self._single_line_mode = True
-
-
     def get_absolute_start_pos(self):
-        """Must be implemented by subclass, computes the absolute coords of upper-left corner
-        """
-
         raise NotImplementedError
 
 
     def get_absolute_stop_pos(self):
-        """Must be implemented by subclass, computes the absolute coords of bottom-right corner
-        """
-
         raise NotImplementedError
 
 
     def get_absolute_dimensions(self):
-        start_x,    start_y = self.get_absolute_start_pos()
-        stop_x,     stop_y  = self.get_absolute_stop_pos()
-        return (stop_y - start_y), (stop_x - start_x)
+        return (self._stop_y - self._start_y + 1), (self._stop_x - self._start_x + 1)
 
 
     def get_widget_start_pos(self):
@@ -120,10 +88,9 @@ class UIElement:
                 y - (self._style['border_width'] if self._style['show_border'] else 0) - self._style['padding_y'])
 
 
-    def update_height_width(self):
-        self._start_x, self._start_y  = self.get_absolute_start_pos()
-        self._stop_x,  self._stop_y   = self.get_absolute_stop_pos()
-        self._height,  self._width    = self.get_absolute_dimensions()
+    def update_size(self):
+        self._height = self._stop_y - self._start_y + 1
+        self._width = self._stop_x - self._start_x + 1
 
 
     def get_viewport_width(self):
@@ -310,9 +277,7 @@ class UIElement:
 
 
     def _contains_position(self, x, y):
-        within_x = self._start_x <= x and self._start_x + self._width >= x
-        within_y = self._start_y <= y and self._start_y + self._height >= y
-        return within_x and within_y
+        return self._start_x <= x and self._stop_x >= x and self._start_y <= y and self._stop_y >= y
 
 
 class UIImplementation:

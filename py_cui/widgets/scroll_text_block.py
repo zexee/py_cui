@@ -265,16 +265,15 @@ class ScrollTextBlock(Widget, TextBlockImplementation):
     """Widget for editing large multi-line blocks of text
     """
 
-    def __init__(self, parent, title, row, column, row_span, column_span):
-      Widget.__init__(self, parent, title, row, column, row_span, column_span)
+    def __init__(self, parent, title):
+      Widget.__init__(self, parent, title)
       TextBlockImplementation.__init__(self, parent._logger)
       self._parent = parent
-      self.update_height_width()
       self.set_help_text('Focus mode on TextBlock. Press Esc to exit focus mode.')
 
 
-    def update_height_width(self):
-      Widget.update_height_width(self)
+    def update_size(self):
+      Widget.update_size(self)
       self._viewable_text_y = 0
       self._viewable_text_x = 0
       self._cursor_text_x  = 0

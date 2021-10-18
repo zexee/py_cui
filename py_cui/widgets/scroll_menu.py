@@ -252,11 +252,11 @@ class ScrollMenu(Widget, MenuImplementation):
     """A scroll menu widget.
     """
 
-    def __init__(self, parent, title, row, column, row_span=1, column_span=1):
+    def __init__(self, parent, title):
         """Initializer for scroll menu. calls superclass initializers and sets help text
         """
 
-        Widget.__init__(self, parent, title, row, column, row_span, column_span)
+        Widget.__init__(self, parent, title)
         MenuImplementation.__init__(self, parent._logger)
         self._parent = parent
         self.set_help_text('Focus mode on ScrollMenu. Use Up/Down/PgUp/PgDown/Home/End to scroll, Esc to exit.')

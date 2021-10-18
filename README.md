@@ -4,7 +4,10 @@ Checkout example/all_in_one.py for usage example. Other examples and unit tests 
 
 TODO:
 ----
-- use CSS-like style for widget.
 - use event-based callback
-- draw border/decoration and content separately, so the content can be put into another widget.
 - implement linear-layout (ScrollMenu is basically linear-layout with buttons)
+
+DONE:
+----
+- use CSS-like style for widget.
+- draw border/decoration and content separately, so the content can be put into another widget.

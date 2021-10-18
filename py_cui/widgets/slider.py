@@ -104,13 +104,12 @@ class Slider(Widget, SliderImplementation):
         Initial value of the slider
     """
 
-    def __init__(self, parent, title, row, column, row_span, column_span,
+    def __init__(self, parent, title,
                  min_val=0, max_val=100, step=1, init_val=50):
 
         SliderImplementation.__init__(self, min_val, max_val, init_val, step, parent._logger)
 
-        Widget.__init__(self, parent, title, row, column,
-                                       row_span, column_span)
+        Widget.__init__(self, parent, title)
 
         self._parent = parent
         self._display_value = True

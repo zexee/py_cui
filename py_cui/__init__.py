@@ -30,7 +30,7 @@ import py_cui.keys
 import py_cui.statusbar
 import py_cui.widgets
 import py_cui.dialogs
-import py_cui.widget_set
+import py_cui.layouts
 import py_cui.popups
 import py_cui.renderer
 import py_cui.debug
@@ -156,7 +156,7 @@ class PyCUI:
             'SCROLLBAR'     : '=',
         }
         self._stdscr                = None
-        self._root                  = self.create_new_widget_set(num_rows, num_cols)
+        self._root                  = self.create_new_layout(num_rows, num_cols)
         self._refresh_timeout       = -1
 
         # Variables for determining selected widget/focus mode
@@ -236,43 +236,8 @@ class PyCUI:
             print('Failed to initialize logger: {}'.format(str(e)))
 
 
-    def apply_widget_set(self, new_widget_set):
-        """Function that replaces all widgets in a py_cui with those of a different widget set
-
-        Parameters
-        ----------
-        new_widget_set : WidgetSet
-            The new widget set to switch to
-
-        Raises
-        ------
-        TypeError
-            If input is not of type WidgetSet
-        """
-
-        if isinstance(new_widget_set, py_cui.widget_set.WidgetSet):
-            self.lose_focus()
-            self._root = new_widget_set
-
-            if self._simulated_terminal is None:
-                if self._stdscr is None:
-                    term_size = shutil.get_terminal_size()
-                    height  = term_size.lines
-                    width   = term_size.columns
-                else:
-                    # Use curses termsize when possible to fix resize bug on windows.
-                    height, width = self._stdscr.getmaxyx()
-            else:
-                height  = self._simulated_terminal[0]
-                width   = self._simulated_terminal[1]
-
-            self._refresh_height_width(height, width)
-        else:
-            raise TypeError('Argument must be of type py_cui.widget_set.WidgetSet')
-
-
-    def create_new_widget_set(self, num_rows, num_cols):
-        return py_cui.widget_set.WidgetSet(
+    def create_new_layout(self, num_rows, num_cols):
+        return py_cui.layouts.GridLayout(
             self,
             num_rows, num_cols,
             self._height - self._top_padding - self._bottom_padding - 2,
@@ -286,7 +251,7 @@ class PyCUI:
 
 
     def start(self):
-        curses.wrapper(self._draw)
+      curses.wrapper(self._draw)
 
 
     def stop(self):
@@ -381,40 +346,6 @@ class PyCUI:
     # CUI status functions. Used to switch between widgets, set the mode, and
     # identify neighbors for overview mode
 
-    def _get_neighbor(self, direction):
-        start_widget = self._root.get_selected_widget()
-
-        if direction in [py_cui.keys.KEY_DOWN_ARROW, py_cui.keys.KEY_UP_ARROW]:
-            neighbors = self._root._get_vertical_neighbors(start_widget, direction)
-        elif direction in [py_cui.keys.KEY_RIGHT_ARROW, py_cui.keys.KEY_LEFT_ARROW]:
-            neighbors = self._root._get_horizontal_neighbors(start_widget, direction)
-        else:
-            return None
-
-        return neighbors[0] if neighbors else None
-
-
-    def get_selected_widget(self):
-        return self._root.get_selected_widget()
-
-
-    def set_selected_widget(self, widget_id):
-        return self._root.set_selected_widget(widget_id)
-
-
-    def lose_focus(self):
-        """Function that forces py_cui out of focus mode.
-
-        After popup is called, focus is lost
-        """
-
-        if self._root._in_focused_mode:
-            self._root.lose_focus()
-            self.status_bar.set_text(self._init_status_bar_text)
-        else:
-            self._logger.info('lose_focus: Not currently in focus mode')
-
-
     def move_focus(self, widget, auto_press_buttons=True):
         self._root.move_focus(widget)
         if self._auto_focus_buttons and auto_press_buttons and isinstance(widget, py_cui.widgets.Button):
@@ -428,35 +359,11 @@ class PyCUI:
         self._logger.info('Moved focus to widget {}'.format(widget.get_title()))
 
 
-    def _cycle_widgets(self, reverse=False):
-        num_widgets = len(self._root._widgets)
-        current_widget_num = self._root._selected_widget
-
-        if not reverse:
-            next_widget_num = current_widget_num + 1
-            if next_widget_num == num_widgets:
-                next_widget_num = 0
-            cycle_key = self._forward_cycle_key
-        else:
-            next_widget_num = current_widget_num - 1
-            if next_widget_num < 0:
-                next_widget_num = num_widgets - 1
-            cycle_key = self._reverse_cycle_key
-
-        current_widget_id = current_widget_num
-        next_widget_id = next_widget_num
-        if self._root._in_focused_mode and cycle_key in self._root._widgets[current_widget_id]._key_commands.keys():
-            # In the event that we are focusing on a widget with that key defined, we do not cycle.
-            pass
-        else:
-            self.move_focus(self._root._widgets[next_widget_id], auto_press_buttons=False)
-
-
     def add_key_command(self, key, command):
         self._root.add_key_command(key, command)
 
 
-    def get_root(self) -> py_cui.widget_set:
+    def get_root(self) -> py_cui.layouts.Layout:
         return self._root
 
     # Popup functions. Used to display messages, warnings, and errors to the user.
@@ -727,46 +634,10 @@ class PyCUI:
 
 
     def _handle_key_presses(self, key_pressed):
-        # if we have a popup, that takes key control from both overview and focus mode
         if self._popup is not None:
-            self._logger.info('Popup {} handling key {}'.format(self._popup.get_title(), key_pressed))
-            self._popup._handle_key_press(key_pressed)
-        # If we are in focus mode, the widget has all of the control of the keyboard except
-        # for the escape key, which exits focus mode.
-        elif self._root._in_focused_mode:
-            selected_widget = self._root.get_selected_widget()
-            if key_pressed == py_cui.keys.KEY_ESCAPE:
-                self.status_bar.set_text(self._init_status_bar_text)
-                self.lose_focus()
-                self._logger.info('Exiting focus mode on widget {}'.format(selected_widget.get_title()))
-            else:
-                # widget handles remaining py_cui.keys
-                self._logger.info('Widget {} handling {} key'.format(selected_widget.get_title(), key_pressed))
-                selected_widget._handle_key_press(key_pressed)
-
-        # Otherwise, barring a popup, we are in overview mode, meaning that arrow py_cui.keys move between widgets, and Enter key starts focus mode
+          self._popup._handle_key_press(key_pressed)
         else:
-            handled = False
-            selected_widget = self._root.get_selected_widget()
-            if key_pressed == py_cui.keys.KEY_ENTER and self._root._selected_widget is not None and selected_widget._style['selectable']:
-                self.move_focus(selected_widget)
-            else:
-                selected_widget = self._root.get_selected_widget()
-                if selected_widget:
-                    handled = selected_widget._handle_key_press(key_pressed)
-
-                if not handled and key_pressed in self._root._keybindings:
-                    command = self._root._keybindings[key_pressed]
-                    self._logger.info('Detected binding for key {}, running command {}'.format(key_pressed, command.__name__))
-                    command()
-                    handled = True
-
-                if not handled:
-                    if key_pressed in py_cui.keys.ARROW_KEYS:
-                        neighbor = self._get_neighbor(key_pressed)
-                        if neighbor:
-                            self.set_selected_widget(neighbor)
-                            self._logger.info('Navigated to neighbor widget {}'.format(self._root.get_selected_widget().get_title()))
+          self._root._handle_key_presses(key_pressed)
 
 
     def _draw(self, stdscr):
@@ -778,7 +649,17 @@ class PyCUI:
             The screen buffer used for drawing CUI elements
         """
 
+        # find height width, adjust if status/title bar added. We decrement the height by 4 to account for status/title bar and padding
+        if self._simulated_terminal is None:
+            height, width   = stdscr.getmaxyx()
+        else:
+            height = self._simulated_terminal[0]
+            width  = self._simulated_terminal[1]
+        if self._stdscr is None:
+          # first time, need to initialize
+          self._refresh_height_width(height, width)
         self._stdscr = stdscr
+
         key_pressed = 0
 
         # Clear and refresh the screen for a blank canvas
@@ -805,13 +686,6 @@ class PyCUI:
                 # Initialization and size adjustment
                 stdscr.erase()
 
-                # find height width, adjust if status/title bar added. We decrement the height by 4 to account for status/title bar and padding
-                if self._simulated_terminal is None:
-                    height, width   = stdscr.getmaxyx()
-                else:
-                    height = self._simulated_terminal[0]
-                    width  = self._simulated_terminal[1]
-
                 # If the user defined an update function to fire on each draw call,
                 # Run it here. This can of course be also handled user-side
                 # through a separate thread.
@@ -821,6 +695,11 @@ class PyCUI:
                 # This is what allows the CUI to be responsive. Adjust grid size based on current terminal size
                 # Resize the grid and the widgets if there was a resize operation
                 if key_pressed == curses.KEY_RESIZE:
+                    if self._simulated_terminal is None:
+                        height, width   = stdscr.getmaxyx()
+                    else:
+                        height = self._simulated_terminal[0]
+                        width  = self._simulated_terminal[1]
                     self._logger.info('Resizing CUI to new dimensions {} by {}'.format(height, width))
                     try:
                         self._refresh_height_width(height, width)
@@ -854,17 +733,17 @@ class PyCUI:
 
                 # Handle widget cycling
                 if key_pressed == self._forward_cycle_key:
-                    self._cycle_widgets()
+                    self._root._cycle_widgets()
                 elif key_pressed == self._reverse_cycle_key:
-                    self._cycle_widgets(reverse=True)
+                    self._root._cycle_widgets(reverse=True)
 
                 # Handle keypresses
                 self._handle_key_presses(key_pressed)
 
                 try:
                     # Draw status/title bar, and all widgets. Selected widget will be bolded.
-                    self._draw_status_bars(stdscr, height, width)
-                    self._root._draw_widgets()
+                    self._draw_status_bars(stdscr, self._height, self._width)
+                    self._root._draw()
                     # draw the popup if required
                     if self._popup is not None:
                         self._popup._draw()

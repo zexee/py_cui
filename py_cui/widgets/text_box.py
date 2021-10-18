@@ -211,23 +211,19 @@ class TextBox(Widget, TextBoxImplementation):
     """Widget for entering small single lines of text
     """
 
-    def __init__(self, parent, title, row, column, row_span, column_span, password=''):
+    def __init__(self, parent, title, password=False):
         """Initializer for TextBox widget. Uses TextBoxImplementation as base
         """
 
-        Widget.__init__(self, parent, title, row, column, row_span, column_span)
+        Widget.__init__(self, parent, title)
         TextBoxImplementation.__init__(self, password, parent._logger)
         self._style['single_line_mode'] = True
         self._parent = parent
-        self.update_height_width()
         self.set_help_text('Focus mode on TextBox. Press Esc to exit focus mode.')
 
 
-    def update_height_width(self):
-        """Need to update all cursor positions on resize
-        """
-
-        super().update_height_width()
+    def update_size(self):
+        super().update_size()
         self._cursor_x, self._cursor_y = self.get_viewport_start_pos()
         _, self._cursor_max_right = self.get_viewport_stop_pos()
         self._cursor_max_left = self._cursor_x
